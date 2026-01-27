@@ -2,11 +2,12 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 穩定修復版</title>
+    <title>V-Commander | 全功能穩定版</title>
     <style>
         :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
+        /* 側邊欄位結構 */
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
@@ -15,6 +16,7 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
+        /* 按鍵與流金動畫 [cite: 2026-01-22, 2026-01-27] */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 130px; margin: 4px 0;
             border: 1px solid #1a1a1a; background: #080808;
@@ -34,11 +36,13 @@
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
+        /* 主舞台與視訊佈局 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
         .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #000; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
+        /* 戰情日誌與標題 */
         #status-log { 
             flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
             display: flex; flex-direction: column-reverse; padding: 15px; 
@@ -80,7 +84,7 @@
         <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
         <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
         <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
-        <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
+        <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
         <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c300aa;">LINE</button>
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
     </div>
@@ -94,6 +98,7 @@
     let isPIP = true;
     let cameraStream = null;
 
+    // 初始化攝影機 [cite: 2026-01-07]
     async function startVideo() {
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -103,32 +108,31 @@
         } catch (e) { addLog("⚠️ 無法連線攝影機"); }
     }
 
+    // 分享功能修復
     async function toggleShare() {
         try {
-            // [偵測] 針對網頁版 LINE 與分頁分享優化
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ 
                 video: { displaySurface: "browser", cursor: "always" },
                 audio: true 
             });
             
-            const mainDisplay = document.getElementById('main-display');
-            mainDisplay.srcObject = shareStream;
-            addLog("🌐 網頁版 LINE：訊號已接入主舞台"); [cite: 2026-01-07]
+            document.getElementById('main-display').srcObject = shareStream;
+            addLog("🌐 網頁版 LINE：訊號已接入主舞台");
 
-            // [關鍵修復] 分享結束時，執行完整的鏡頭還原邏輯
             shareStream.getVideoTracks()[0].onended = () => {
                 resetToCamera();
             };
-        } catch (e) { addLog("⚠️ 分享已取消"); }
+        } catch (e) { addLog("⚠️ 分享操作已取消"); }
     }
 
+    // 黑屏修復機制
     function resetToCamera() {
         const mainDisplay = document.getElementById('main-display');
         if (cameraStream) {
             mainDisplay.srcObject = cameraStream;
-            addLog("🔄 分享結束，還原監控模式"); [cite: 2026-01-07]
+            addLog("🔄 分享結束，還原監控模式");
         } else {
-            startVideo(); // 如果串流遺失則重新啟動
+            startVideo();
         }
     }
 

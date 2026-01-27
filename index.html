@@ -4,26 +4,25 @@
     <meta charset="UTF-8">
     <title>V-Commander 實時戰情室</title>
     <style>
-        /* 18-20 號黃金比例字體 */
+        /* [cite: 2026-01-22] 19px 黃金比例字體 */
         :root { --font-main: 19px; --bg-dark: #000000; --accent: #d4a017; }
         body { margin: 0; background: var(--bg-dark); color: white; font-family: sans-serif; display: flex; height: 100vh; font-size: var(--font-main); overflow: hidden; }
 
         #left-pool { width: 140px; background: #111; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 10px; gap: 10px; }
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        #my-video-stage { flex-grow: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        #my-video-stage { flex-grow: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
         #local-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        /* 右側：整合 Google Chat 與日誌 */
-        #right-feedback { width: 350px; background: #111; border-left: 1px solid #333; display: flex; flex-direction: column; }
-        #chat-embed { flex: 2; border-bottom: 1px solid #333; background: #fff; } /* 內嵌視窗 */
-        #status-log { flex: 1; overflow-y: auto; font-size: 14px; color: #888; padding: 10px; display: flex; flex-direction: column-reverse; }
+        /* 右側欄：日誌與通訊切換 [cite: 2026-01-07] */
+        #right-feedback { width: 300px; background: #111; border-left: 1px solid #333; display: flex; flex-direction: column; }
+        #status-log { flex-grow: 1; overflow-y: auto; font-size: 14px; color: #888; padding: 15px; display: flex; flex-direction: column-reverse; }
         .log-entry { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 5px; }
 
         #bottom-bar { height: 110px; background: #1a1a1a; border-top: 1px solid #333; display: flex; align-items: center; padding: 0 20px; gap: 15px; }
         #chat-field { flex-grow: 1; background: #000; color: white; border: 1px solid #444; padding: 12px; font-size: 19px; border-radius: 5px; }
         
-        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 18px; transition: 0.3s; }
-        .onair-banner { position: absolute; top: 20px; left: 20px; background: #ff4d4d; padding: 8px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 10; box-shadow: 0 0 15px rgba(255,77,77,0.5); }
+        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .onair-banner { position: absolute; top: 20px; left: 20px; background: #ff4d4d; padding: 8px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 10; }
     </style>
 </head>
 <body onload="startVideo()">
@@ -42,12 +41,12 @@
     <div id="bottom-bar">
         <input type="text" id="chat-field" placeholder="輸入指令並同步錄影標記..." onkeydown="if(event.key==='Enter') pushMsg()">
         <button id="broadcast-btn" style="background:#d4a017; color:black;" onclick="toggleBroadcast()">啟動廣播 & 錄影</button>
-        <button id="cam-trigger" style="background:#4285f4; color:white;" onclick="startVideo()">重新連結鏡頭</button>
+        <button id="chat-btn" style="background:#444; color:white;" onclick="openGoogleChat()">開啟 Google Chat</button>
     </div>
 </div>
 
 <div id="right-feedback">
-    <iframe id="chat-embed" src="https://chat.google.com/" allow="camera; microphone"></iframe>
+    <div style="padding:15px; border-bottom:1px solid #333; color:var(--accent); font-weight:bold;">系統日誌</div>
     <div id="status-log"></div>
 </div>
 
@@ -56,19 +55,23 @@
     let recordedChunks = [];
     let isBroadcasting = false;
 
-    // 啟動視訊
     async function startVideo() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('local-video').srcObject = stream;
-            addLog("🎥 指揮官視訊已就緒");
-            window.localStream = stream; // 存儲串流供錄影使用
+            window.localStream = stream;
+            addLog("🎥 指揮官視訊已就緒 [cite: 2026-01-07]");
         } catch (err) {
             addLog("❌ 硬體連結失敗：" + err.message);
         }
     }
 
-    // 切換廣播與自動錄影
+    function openGoogleChat() {
+        // [cite: 2026-01-27] 使用彈出視窗解決 403 錯誤
+        window.open('https://chat.google.com/', 'GoogleChat', 'width=1000,height=800');
+        addLog("💬 已另開視窗同步 Google Chat");
+    }
+
     function toggleBroadcast() {
         isBroadcasting = !isBroadcasting;
         const btn = document.getElementById('broadcast-btn');
@@ -80,18 +83,17 @@
             btn.style.background = "#ff4d4d";
             btn.style.color = "white";
             label.style.display = "block";
-            addLog("🔴 廣播開始：同步錄影中...");
+            addLog("🔴 廣播開始：同步錄影中... [cite: 2026-01-07]");
         } else {
             stopRecording();
             btn.innerText = "啟動廣播 & 錄影";
             btn.style.background = "#d4a017";
             btn.style.color = "black";
             label.style.display = "none";
-            addLog("💾 廣播結束：影片已生成下載");
+            addLog("💾 錄影結束：影片下載中... [cite: 2026-01-07]");
         }
     }
 
-    // 錄影邏輯
     function startRecording() {
         recordedChunks = [];
         mediaRecorder = new MediaRecorder(window.localStream);
@@ -100,16 +102,14 @@
         mediaRecorder.start();
     }
 
-    function stopRecording() {
-        mediaRecorder.stop();
-    }
+    function stopRecording() { mediaRecorder.stop(); }
 
     function downloadVideo() {
         const blob = new Blob(recordedChunks, { type: 'video/mp4' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `V-Commander_Report_${new Date().getTime()}.mp4`;
+        a.download = `V-Commander_${new Date().getTime()}.mp4`;
         a.click();
     }
 
@@ -123,10 +123,7 @@
 
     function pushMsg() {
         const input = document.getElementById('chat-field');
-        if(input.value) {
-            addLog(`⚡ 指令：${input.value}`);
-            input.value = "";
-        }
+        if(input.value) { addLog(`⚡ 指令標記：${input.value}`); input.value = ""; }
     }
 </script>
 </body>

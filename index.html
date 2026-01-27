@@ -2,55 +2,54 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 全文字流金版</title>
+    <title>V-Commander | 左側精修版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
 
-        /* [校準] 確保容器有足夠空間撐開按鍵 [cite: 2026-01-27] */
         .side-tabs { 
             width: 48px; background: #080808; display: flex; flex-direction: column; 
-            padding: 20px 0 100px 0; 
-            justify-content: space-between; align-items: center; 
+            padding: 20px 0 100px 0; justify-content: space-between; align-items: center; 
         }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* [核心修復] 全面放寬高度，並微調字距至 1.5px 以確保四字完整呈現 [cite: 2026-01-22] */
+        /* 通用按鍵基礎 */
         .tab-btn { 
-            width: 36px; flex-grow: 1; 
-            max-height: 150px; /* 進一步提高限制，確保左側四字回歸 */
-            margin: 5px 0;
+            width: 36px; flex-grow: 1; max-height: 140px; margin: 4px 0;
             border: 1px solid #1a1a1a; background: #080808;
-            cursor: pointer; 
-            font-size: 13.5px; /* 秀氣字體尺寸 [cite: 2026-01-22] */
-            color: var(--soft-gold); 
-            writing-mode: vertical-lr; 
-            text-align: center; 
-            letter-spacing: 1.5px; /* 稍微縮減字距，讓四個字更安全地待在框內 */
-            white-space: nowrap; 
-            opacity: 0.7; transition: 0.5s; font-weight: 300;
+            cursor: pointer; writing-mode: vertical-lr; text-align: center; 
+            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
 
-        /* 流金動畫保持不變 [cite: 2026-01-27] */
+        /* [校準] 左側規模按鍵：字體縮小至 12.5px 以容納五個字組 */
+        .left-tabs .tab-btn { 
+            font-size: 12.5px; 
+            color: var(--soft-gold);
+            letter-spacing: 1px; /* 緊湊字距確保不被裁切 */
+        }
+
+        /* [校準] 右側功能按鍵：維持 13.5px 秀氣感 */
+        .right-tabs .tab-btn { 
+            font-size: 13.5px; 
+            color: var(--soft-gold);
+            letter-spacing: 2px;
+        }
+
+        /* 流金動畫保持 */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
             transform: rotate(45deg); animation: goldFlow 4s infinite linear; pointer-events: none;
         }
-
         @keyframes goldFlow {
             0% { transform: translate(-30%, -30%) rotate(45deg); }
             100% { transform: translate(30%, 30%) rotate(45deg); }
         }
-
-        .tab-btn:hover { 
-            opacity: 1; border-color: var(--soft-gold); color: #fff; 
-            box-shadow: 0 0 15px var(--gold-glow); background: #111;
-        }
+        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); background: #111; }
 
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
@@ -68,7 +67,7 @@
 
 <div class="side-zone">
     <div class="side-content" style="order:1;">
-        <div class="side-title">MONITOR POOL [cite: 2026-01-07]</div>
+        <div class="side-title">MONITOR POOL</div>
         <div id="matrix-container"></div>
     </div>
     <div class="side-tabs left-tabs">
@@ -98,7 +97,7 @@
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
     </div>
     <div class="side-content" style="order:2;">
-        <div class="side-title">戰情日誌 [cite: 2026-01-07]</div>
+        <div class="side-title">戰情日誌</div>
         <div id="status-log"></div>
     </div>
 </div>

@@ -182,7 +182,33 @@
         const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
         entry.innerHTML = `<span class="log-time">${timeStr}</span> ${txt}`;
         log.prepend(entry);
+        }
+    async function toggleShare() {
+    try {
+        // [指揮官提醒] 點擊後，請在彈出視窗選取「Chrome 分頁」>「LINE」
+        const shareStream = await navigator.mediaDevices.getDisplayMedia({ 
+            video: { 
+                displaySurface: "browser", // 強制優先顯示網頁分頁選項
+                cursor: "always"
+            }, 
+            audio: true 
+        });
+        
+        const mainDisplay = document.getElementById('main-display');
+        mainDisplay.srcObject = shareStream;
+        
+        addLog("🌐 網頁版 LINE：訊號已接入主舞台"); [cite: 2026-01-07]
+
+        // 解決關閉分享後的黑屏：自動偵測並還原
+        shareStream.getVideoTracks()[0].onended = () => {
+            mainDisplay.srcObject = cameraStream;
+            addLog("🔄 網頁通訊結束，還原監控模式"); [cite: 2026-01-07]
+        };
+    } catch (e) { 
+        addLog("⚠️ 分享取消：未偵測到網頁訊號"); 
     }
+}
 </script>
 </body>
 </html>
+

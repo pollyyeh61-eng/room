@@ -171,9 +171,22 @@
         entry.innerHTML = `<span style="color:#222;">${new Date().toLocaleTimeString()}</span> ${text}`;
         log.prepend(entry);
     }
+    // 在 toggleShare 或 startPIPMode 邏輯中加入此判斷
+async function toggleShare() {
+    try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+            video: { displaySurface: "window" } // 優先引導選擇「視窗」模式
+        });
+        const mainV = document.getElementById('main-display');
+        mainV.srcObject = screenStream;
+        mainV.style.transform = "none"; // 強制取消鏡射，確保簡報文字正常
+        addLog("🖥️ 簡報視窗已嵌入主舞台 [文字方向校正完畢]");
+    } catch (err) { addLog("ℹ️ 取消分享"); }
+}
     
     function openLine() { window.location.href = "line://"; }
     function openGoogle() { window.open('https://chat.google.com/', 'Chat', 'width=1000,height=800'); }
 </script>
 </body>
 </html>
+

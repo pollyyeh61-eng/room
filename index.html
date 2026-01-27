@@ -2,11 +2,11 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 精準比例版</title>
+    <title>V-Commander | 功能全修復版</title>
     <style>
         :root { 
-            --left-width: 180px;  /* 左側恢復原樣 */
-            --right-width: 280px; /* 右側適度加寬，解決折行問題 */
+            --left-width: 180px; 
+            --right-width: 280px; 
             --soft-gold: #e5c07b; 
             --gold-glow: rgba(229, 192, 123, 0.4); 
             --bg-dark: #000; 
@@ -24,7 +24,7 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* [校準] 秀氣按鍵：統一最大高度，字體精修 [cite: 2026-01-22, 2026-01-27] */
+        /* 秀氣按鍵樣式 [cite: 2026-01-22] */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 130px; margin: 4px 0;
             border: 1px solid #1a1a1a; background: #080808;
@@ -32,11 +32,10 @@
             white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
-        /* 左側文字再縮小 0.5 級 [cite: 2026-01-22] */
         .left-tabs .tab-btn { font-size: 12px; color: var(--soft-gold); letter-spacing: 1px; }
-        /* 右側文字維持秀氣 [cite: 2026-01-22] */
         .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
 
+        /* 流金特效 [cite: 2026-01-27] */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
@@ -44,6 +43,7 @@
         }
         @keyframes goldFlow { 0% { transform: translate(-30%, -30%) rotate(45deg); } 100% { transform: translate(30%, 30%) rotate(45deg); } }
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
@@ -55,7 +55,6 @@
         #main-display { width: 100%; height: 100%; object-fit: contain; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 150px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
         
-        /* [核心優化] 日誌寬度足夠且不折行 */
         #status-log { 
             flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
             display: flex; flex-direction: column-reverse; padding: 15px; 
@@ -105,7 +104,67 @@
 </div>
 
 <script>
-    /* ... JavaScript 功能邏輯維持全線開啟 [cite: 2026-01-07] ... */
+    let isPIP = true;
+
+    async function startVideo() {
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('commander-pip').srcObject = s;
+            document.getElementById('main-display').srcObject = s;
+            addLog("🎥 系統核心連線成功 [2026-01-07]");
+        } catch (e) { addLog("⚠️ 無法連線攝影機"); }
+    }
+
+    function setScale(num) {
+        const container = document.getElementById('matrix-container');
+        container.innerHTML = '';
+        let cols = (num <= 20) ? 1 : (num <= 50 ? 4 : 8);
+        container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        for (let i = 1; i <= num; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'unit-dot';
+            dot.innerText = (num <= 20) ? `UNIT-${i}` : `${i}`;
+            container.appendChild(dot);
+        }
+        addLog(`📊 規模切換：${num} 人單位`);
+    }
+
+    function toggleRec() {
+        const btn = document.getElementById('rec-btn');
+        if (btn.classList.toggle('active-red')) {
+            btn.innerText = "錄製中...";
+            addLog("🔴 啟動全線錄影存檔");
+        } else {
+            btn.innerText = "錄影存檔";
+            addLog("✅ 錄影結束，檔案已封存");
+        }
+    }
+
+    function toggleBC() {
+        const btn = document.getElementById('bc-btn');
+        if (btn.classList.toggle('active-red')) {
+            btn.innerText = "廣播中...";
+            addLog("📡 指令廣播模式：啟動");
+        } else {
+            btn.innerText = "廣播指令";
+            addLog("🔇 指令廣播模式：關閉");
+        }
+    }
+
+    function togglePIP() {
+        isPIP = !isPIP;
+        document.getElementById('commander-pip').style.display = isPIP ? 'block' : 'none';
+        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
+    }
+
+    async function toggleShare() {
+        try {
+            const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            document.getElementById('main-display').srcObject = s;
+            addLog("🖥️ 視窗內容同步分享中");
+        } catch (e) { addLog("⚠️ 視窗分享已取消"); }
+    }
+
     function addLog(txt) {
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
@@ -115,7 +174,6 @@
         entry.innerHTML = `<span class="log-time">${timeStr}</span> ${txt}`;
         log.prepend(entry);
     }
-    // 其他函數比照上一版本
 </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 核心功能回歸版</title>
+    <title>V-Commander | 大字對稱指揮版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
@@ -10,37 +10,40 @@
         /* 側邊 180px 容器 */
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
 
-        /* 直式按鍵欄：緊貼中央畫面 [cite: 2026-01-27] */
+        /* 直式按鍵欄：緊貼中央、字體放大、置底平均分佈 [cite: 2026-01-27] */
         .side-tabs { 
-            width: 42px; background: #080808; display: flex; flex-direction: column; padding: 10px 0; gap: 4px; align-items: center; 
+            width: 48px; background: #080808; display: flex; flex-direction: column; 
+            padding: 15px 0; justify-content: space-between; align-items: center; 
         }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 淡金微刻按鍵 [cite: 2026-01-22, 2026-01-27] */
+        /* 大字淡金微刻按鍵 [cite: 2026-01-22, 2026-01-27] */
         .tab-btn { 
-            width: 30px; min-height: 60px; border: 1px solid #222; background: #0a0a0a;
-            cursor: pointer; font-size: 9px; color: var(--soft-gold); writing-mode: vertical-lr; 
-            text-align: center; letter-spacing: 2px; opacity: 0.8; transition: 0.3s;
+            width: 38px; flex-grow: 1; max-height: 120px; margin: 2px 0;
+            border: 1px solid #222; background: #0a0a0a;
+            cursor: pointer; font-size: 14px; color: var(--soft-gold); writing-mode: vertical-lr; 
+            text-align: center; letter-spacing: 4px; opacity: 0.8; transition: 0.3s;
+            font-weight: bold;
         }
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; }
-        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; }
 
-        /* 內容區：推向兩側 */
+        /* 內容區 */
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .side-title { padding: 12px 15px; border-bottom: 1px solid #151515; color: #444; font-size: 11px; letter-spacing: 2px; font-weight: bold; }
+        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: var(--soft-gold); font-size: 13px; letter-spacing: 2px; font-weight: bold; }
         
-        #matrix-container { flex-grow: 1; display: grid; gap: 4px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { border: 1px solid #222; background: #0a0a0a; color: #444; text-align: center; font-size: 9px; padding: 4px 0; }
-        .active-sig { border-color: #00ff00 !important; color: #00ff00 !important; box-shadow: 0 0 8px rgba(0,255,0,0.3); }
+        #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
+        .unit-dot { border: 1px solid #222; background: #0a0a0a; color: #666; text-align: center; font-size: 12px; padding: 6px 0; }
+        .active-sig { border-color: #00ff00 !important; color: #00ff00 !important; }
 
         /* 中央舞台 */
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #1a1a1a; border-right: 1px solid #1a1a1a; }
-        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #1a1a1a; position: relative; background: #050505; }
+        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 2px solid #111; border-right: 2px solid #111; }
+        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #1a1a1a; position: relative; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
-        #commander-pip { position: absolute; top: 15px; right: 15px; width: 140px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
 
-        #status-log { flex-grow: 1; font-size: 11px; color: #333; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
+        #status-log { flex-grow: 1; font-size: 13px; color: #444; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
     </style>
 </head>
 <body onload="startVideo(); setScale(10);">
@@ -73,8 +76,8 @@
         <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
         <button class="tab-btn" onclick="togglePIP()">子母畫面</button>
         <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
-        <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c30088;">LINE</button>
-        <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f488;">CHAT</button>
+        <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c300;">LINE</button>
+        <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4;">CHAT</button>
     </div>
     <div class="side-content" style="order:2;">
         <div class="side-title">戰情日誌</div>
@@ -90,7 +93,7 @@
         window.lStream = s;
         document.getElementById('commander-pip').srcObject = s;
         document.getElementById('main-display').srcObject = s;
-        addLog("🎥 系統已就緒 [cite: 2026-01-07]");
+        addLog("🎥 系統就緒：大字體模式已啟動");
     }
 
     function setScale(num) {
@@ -101,16 +104,16 @@
         for (let i = 1; i <= num; i++) {
             const dot = document.createElement('div');
             dot.className = 'unit-dot';
-            dot.innerText = (num <= 20) ? `OP-${i}` : `${i}`;
+            dot.innerText = (num <= 20) ? `UNIT-${i}` : `${i}`;
             container.appendChild(dot);
         }
-        addLog(`📊 規模：${num} UNIT [cite: 2026-01-27]`);
+        addLog(`📊 規模：${num} UNIT 已校準`);
     }
 
     async function toggleShare() {
         const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
         document.getElementById('main-display').srcObject = s;
-        addLog("🖥️ 視窗同步中 [cite: 2026-01-27]");
+        addLog("🖥️ 視窗分享進行中");
     }
 
     function toggleRec() {

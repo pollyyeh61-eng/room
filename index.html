@@ -2,33 +2,40 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 流金指揮版</title>
+    <title>V-Commander | 完整流金版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
 
-        /* 直式按鍵欄：高度上移 [cite: 2026-01-27] */
+        /* 直式按鍵欄：位置維持高處，確保手感 [cite: 2026-01-27] */
         .side-tabs { 
             width: 48px; background: #080808; display: flex; flex-direction: column; 
-            padding: 20px 0 100px 0; /* 再度上提，確保視覺重心偏中上 [cite: 2026-01-27] */
+            padding: 20px 0 100px 0; 
             justify-content: space-between; align-items: center; 
         }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* [新功能] 流金效果按鍵 [cite: 2026-01-22, 2026-01-27] */
+        /* [關鍵校準] 放寬 max-height 確保四個字完整顯示 [cite: 2026-01-22] */
         .tab-btn { 
-            width: 36px; flex-grow: 1; max-height: 90px; margin: 5px 0;
+            width: 36px; flex-grow: 1; 
+            max-height: 140px; /* 增加高度限制以容納四個字 */
+            margin: 5px 0;
             border: 1px solid #1a1a1a; background: #080808;
-            cursor: pointer; font-size: 13.5px; color: var(--soft-gold); 
-            writing-mode: vertical-lr; text-align: center; letter-spacing: 4px;
-            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
+            cursor: pointer; 
+            font-size: 13.5px; /* 秀氣字體 [cite: 2026-01-22] */
+            color: var(--soft-gold); 
+            writing-mode: vertical-lr; 
+            text-align: center; 
+            letter-spacing: 2px; /* 微調字距確保文字緊湊完整 */
+            white-space: nowrap; 
+            opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
 
-        /* 邊框流金動畫 [cite: 2026-01-27] */
+        /* 流金動畫效果 [cite: 2026-01-27] */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
@@ -45,9 +52,9 @@
             box-shadow: 0 0 15px var(--gold-glow); background: #111;
         }
 
-        /* 其他區域維持專業簡潔 */
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
+        
         #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
         .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
 
@@ -62,7 +69,7 @@
 
 <div class="side-zone">
     <div class="side-content" style="order:1;">
-        <div class="side-title">MONITOR POOL</div>
+        <div class="side-title">MONITOR POOL [cite: 2026-01-07]</div>
         <div id="matrix-container"></div>
     </div>
     <div class="side-tabs left-tabs">
@@ -92,7 +99,7 @@
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
     </div>
     <div class="side-content" style="order:2;">
-        <div class="side-title">戰情日誌</div>
+        <div class="side-title">戰情日誌 [cite: 2026-01-07]</div>
         <div id="status-log"></div>
     </div>
 </div>

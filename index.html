@@ -2,12 +2,13 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander 實時戰情室 | 真·子母畫面版</title>
+    <title>V-Commander 實時戰情室 | 淡金流金版</title>
     <style>
         :root { 
             --side-width: 180px; 
-            --accent: #d4a017; 
-            --bg-dark: #000000;
+            --accent: #d4a017;      /* 標準金 */
+            --soft-gold: #e5c07b;   /* 淡金色文字 [cite: 2026-01-27] */
+            --bg-dark: #000000; 
         }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
@@ -23,6 +24,7 @@
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
         #my-video-stage { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
         
+        /* 16:10 闊銀幕 */
         .video-container {
             width: 100%; aspect-ratio: 16 / 10;
             background: #080808; border: 1px solid #1a1a1a;
@@ -30,8 +32,7 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
-        /* 畫面層級設定 [cite: 2026-01-27] */
-        #main-display { width: 100%; height: 100%; object-fit: cover; } /* 主畫面：顯示 LINE/Chat */
+        #main-display { width: 100%; height: 100%; object-fit: cover; }
         #commander-pip { 
             position: absolute; top: 15px; right: 15px; 
             width: 160px; aspect-ratio: 1/1; 
@@ -47,16 +48,23 @@
         /* 極窄微刻流金側標 */
         #side-tabs { 
             width: 40px; background: #050505; border-left: 1px solid #1a1a1a; 
-            display: flex; flex-direction: column; padding: 15px 0; gap: 10px; align-items: center; 
+            display: flex; flex-direction: column; padding: 10px 0; gap: 8px; align-items: center; 
         }
         .tab-btn { 
-            width: 28px; min-height: 80px; border: 1px solid #222; background: #0a0a0a;
-            cursor: pointer; font-size: 10px; color: #444; writing-mode: vertical-lr; 
+            width: 28px; min-height: 75px; border: 1px solid #222; background: #0a0a0a;
+            cursor: pointer; 
+            font-size: 10px; 
+            color: var(--soft-gold); /* 改為淡金色文字 [cite: 2026-01-27] */
+            writing-mode: vertical-lr; 
             text-align: center; letter-spacing: 5px; transition: 0.4s;
+            opacity: 0.7; /* 平時略微透明增加質感 */
         }
-        .tab-btn:hover { color: var(--accent); border-color: var(--accent); }
-        .active-pip { border-color: #4285f4 !important; color: #fff !important; box-shadow: 0 0 10px rgba(66, 133, 244, 0.4); }
-        .active-gold { border-color: var(--accent) !important; color: var(--accent) !important; }
+        .tab-btn:hover { opacity: 1; color: #fff; border-color: var(--accent); box-shadow: 0 0 8px rgba(212, 160, 23, 0.3); }
+
+        /* 激活狀態 */
+        .active-pip { border-color: #4285f4 !important; color: #fff !important; box-shadow: 0 0 10px rgba(66, 133, 244, 0.4); opacity: 1; }
+        .active-gold { border-color: var(--accent) !important; color: #fff !important; opacity: 1; }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
         .banner { position: absolute; top: 15px; left: 15px; color: #ff4d4d; font-size: 10px; display: none; z-index: 50; border-left: 1px solid #ff4d4d; padding-left: 8px; }
     </style>
@@ -73,23 +81,19 @@
             <video id="commander-pip" autoplay playsinline muted></video>
         </div>
     </div>
-    <div id="bottom-input-zone">
-        <input type="text" id="chat-field" placeholder="COMMAND LINE...">
-    </div>
+    <div id="bottom-input-zone"><input type="text" id="chat-field" placeholder="COMMAND LINE ENTRY..."></div>
 </div>
 
 <div id="side-tabs">
     <button id="rec-btn" class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
     <button id="broadcast-btn" class="tab-btn" onclick="toggleBroadcast()">廣播指令</button>
     <button id="pip-btn" class="tab-btn" onclick="startPIPMode()">子母畫面</button>
-    <button class="tab-btn" onclick="openLine()" style="color:#00c30055;">LINE</button>
-    <button class="tab-btn" onclick="openGoogle()" style="color:#4285f455;">CHAT</button>
+    <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
+    <button class="tab-btn" onclick="openLine()" style="color:#00c30088;">LINE</button>
+    <button class="tab-btn" onclick="openGoogle()" style="color:#4285f488;">CHAT</button>
 </div>
 
-<div id="right-log-zone">
-    <div class="side-title">戰情日誌</div>
-    <div id="status-log"></div>
-</div>
+<div id="right-log-zone"><div class="side-title">戰情日誌</div><div id="status-log"></div></div>
 
 <script>
     let mediaRecorder, recordedChunks = [], isBroadcasting = false;
@@ -98,74 +102,66 @@
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             window.localStream = stream;
-            // 預設主畫面顯示戰略室
             const mainV = document.getElementById('main-display');
             mainV.srcObject = stream; mainV.style.transform = "scaleX(-1)";
-            addLog("🎥 戰略室鏡頭已就緒 [cite: 2026-01-07]");
-        } catch (err) { addLog("❌ 設備擷取失敗"); }
+            addLog("🎥 戰略室系統連線中 [cite: 2026-01-07]");
+        } catch (err) { addLog("❌ 無法取得攝像鏡頭"); }
     }
 
-    // 真·子母畫面邏輯：主螢幕 LINE/Chat + 右上角戰略室 [cite: 2026-01-27]
+    // 1. 子母畫面：監控外包商視窗，同時保留指揮官小畫面 [cite: 2026-01-27]
     async function startPIPMode() {
-        const mainV = document.getElementById('main-display');
-        const pipV = document.getElementById('commander-pip');
-        const btn = document.getElementById('pip-btn');
-
+        const mainV = document.getElementById('main-display'), pipV = document.getElementById('commander-pip'), btn = document.getElementById('pip-btn');
         try {
-            // 1. 引導選擇外包商視窗 (LINE/Chat)
             const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            
-            // 2. 將外包商畫面放入 16:10 主螢幕
-            mainV.srcObject = screenStream;
-            mainV.style.transform = "none"; 
+            mainV.srcObject = screenStream; mainV.style.transform = "none"; 
+            pipV.srcObject = window.localStream; pipV.style.display = "block";
+            btn.classList.add('active-pip'); addLog("🖼️ 子母畫面開啟：主監控外包商");
+            screenStream.getVideoTracks()[0].onended = () => resetDisplay();
+        } catch (err) { addLog("ℹ️ 指令撤回"); }
+    }
 
-            // 3. 同時啟動右上角小視窗顯示戰略室鏡頭
-            pipV.srcObject = window.localStream;
-            pipV.style.display = "block";
-            
-            btn.classList.add('active-pip');
-            addLog("🖼️ 子母畫面開啟：監控外包商視窗，保留指揮官小窗");
+    // 2. 單獨分享：主畫面切換為特定視窗 [cite: 2026-01-27]
+    async function toggleShare() {
+        const mainV = document.getElementById('main-display'), btn = document.getElementById('share-btn');
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            mainV.srcObject = screenStream; mainV.style.transform = "none";
+            btn.classList.add('active-gold'); addLog("🖥️ 主畫面已切換至分享視窗");
+            screenStream.getVideoTracks()[0].onended = () => resetDisplay();
+        } catch (err) { addLog("ℹ️ 取消分享"); }
+    }
 
-            // 當分享結束時自動回復
-            screenStream.getVideoTracks()[0].onended = () => {
-                mainV.srcObject = window.localStream;
-                mainV.style.transform = "scaleX(-1)";
-                pipV.style.display = "none";
-                pipV.srcObject = null;
-                btn.classList.remove('active-pip');
-                addLog("🎥 已返回戰略室主畫面");
-            };
-        } catch (err) { addLog("ℹ️ 取消子母畫面模式"); }
+    function resetDisplay() {
+        const mainV = document.getElementById('main-display'), pipV = document.getElementById('commander-pip');
+        mainV.srcObject = window.localStream; mainV.style.transform = "scaleX(-1)";
+        pipV.style.display = "none"; pipV.srcObject = null;
+        document.getElementById('pip-btn').classList.remove('active-pip');
+        document.getElementById('share-btn').classList.remove('active-gold');
+        addLog("🎥 返回戰略室監控畫面");
     }
 
     function toggleRecording() {
         const btn = document.getElementById('rec-btn');
         if (btn.classList.toggle('active-red')) {
-            recordedChunks = [];
-            mediaRecorder = new MediaRecorder(window.localStream);
+            recordedChunks = []; mediaRecorder = new MediaRecorder(window.localStream);
             mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: 'video/mp4' });
                 const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                a.download = `V_CMD_LOG_${Date.now()}.mp4`; a.click();
+                a.download = `V_LOG_${Date.now()}.mp4`; a.click();
             };
-            mediaRecorder.start(); btn.innerText = "錄製中";
-            addLog("💾 戰情記錄啟動");
+            mediaRecorder.start(); btn.innerText = "正在錄製"; addLog("💾 記錄模組啟動");
         } else {
-            mediaRecorder.stop(); btn.innerText = "錄影存檔";
-            addLog("✅ 檔案輸出完畢");
+            mediaRecorder.stop(); btn.innerText = "錄影存檔"; addLog("✅ 檔案輸出完畢");
         }
     }
 
     function toggleBroadcast() {
         const btn = document.getElementById('broadcast-btn'), banner = document.getElementById('onair-label');
-        isBroadcasting = !isBroadcasting;
-        if (isBroadcasting) {
-            btn.classList.add('active-gold'); banner.style.display = "block"; btn.innerText = "廣播中";
-            addLog("🔴 啟動廣播：指揮官發話 [cite: 2026-01-07]");
+        if (btn.classList.toggle('active-gold')) {
+            banner.style.display = "block"; btn.innerText = "廣播中"; addLog("🔴 廣播進行：強制宣導中 [cite: 2026-01-07]");
         } else {
-            btn.classList.remove('active-gold'); banner.style.display = "none"; btn.innerText = "廣播指令";
-            addLog("🟢 結束廣播模式");
+            banner.style.display = "none"; btn.innerText = "廣播指令"; addLog("🟢 結束廣播模式");
         }
     }
 

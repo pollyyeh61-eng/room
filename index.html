@@ -2,9 +2,9 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 功能全復原版</title>
+    <title>V-Commander | 日誌優化版</title>
     <style>
-        :root { --side-width: 180px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
+        :root { --side-width: 200px; /* [校準] 稍微增加側邊欄總寬度以容納長句子 */ --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
@@ -12,7 +12,7 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 秀氣流金按鍵樣式 */
+        /* 流金按鍵維持原樣 */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 140px; margin: 4px 0;
             border: 1px solid #1a1a1a; background: #080808;
@@ -23,14 +23,12 @@
         .left-tabs .tab-btn { font-size: 12.5px; color: var(--soft-gold); letter-spacing: 1px; }
         .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
 
-        /* 流金動畫 */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
             transform: rotate(45deg); animation: goldFlow 4s infinite linear; pointer-events: none;
         }
         @keyframes goldFlow { 0% { transform: translate(-30%, -30%) rotate(45deg); } 100% { transform: translate(30%, 30%) rotate(45deg); } }
-        
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
@@ -44,8 +42,12 @@
         #main-display { width: 100%; height: 100%; object-fit: contain; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 150px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
         
-        /* 戰情日誌樣式調優 */
-        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
+        /* [核心優化] 增加寬度並防止日誌文字折行 [cite: 2026-01-22] */
+        #status-log { 
+            flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
+            display: flex; flex-direction: column-reverse; padding: 15px; 
+            line-height: 1.8; white-space: nowrap; /* 禁止折行 */
+        }
         .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         .log-time { color: #222; margin-right: 8px; font-family: monospace; }
     </style>
@@ -96,13 +98,10 @@
     async function startVideo() {
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            window.localStream = s;
             document.getElementById('commander-pip').srcObject = s;
             document.getElementById('main-display').srcObject = s;
-            addLog("🎥 系統核心連線成功 [2026-01-07]");
-        } catch (e) {
-            addLog("⚠️ 無法取得攝像頭權限");
-        }
+            addLog("🎥 系統核心連線成功");
+        } catch (e) { addLog("⚠️ 無法取得攝像頭權限"); }
     }
 
     function setScale(num) {
@@ -124,7 +123,6 @@
         if (btn.classList.toggle('active-red')) {
             btn.innerText = "錄製中...";
             addLog("🔴 啟動全線錄影存檔");
-            // 這裡可以加入實際 MediaRecorder 啟動邏輯
         } else {
             btn.innerText = "錄影存檔";
             addLog("✅ 錄影結束，檔案已封存");
@@ -153,9 +151,7 @@
             const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = s;
             addLog("🖥️ 視窗內容同步分享中");
-        } catch (e) {
-            addLog("⚠️ 視窗分享已取消");
-        }
+        } catch (e) { addLog("⚠️ 視窗分享已取消"); }
     }
 
     function addLog(txt) {

@@ -7,79 +7,81 @@
         :root { --font-main: 19px; --bg-dark: #000000; --accent: #d4a017; }
         body { margin: 0; background: var(--bg-dark); color: white; font-family: sans-serif; display: flex; height: 100vh; font-size: var(--font-main); overflow: hidden; }
 
-        #left-pool { width: 120px; background: #111; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 10px; }
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        #my-video-stage { flex-grow: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        /* 縮小兩側寬度，把空間留給中間 */
+        #left-pool { width: 100px; background: #111; border-right: 1px solid #333; padding: 10px; }
+        #right-feedback { width: 250px; background: #111; border-left: 1px solid #333; display: flex; flex-direction: column; }
+        
+        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #080808; }
+        
+        /* [核心修改] 建立大正方形視訊區 */
+        #my-video-stage { 
+            flex-grow: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+        }
+        
+        .video-container {
+            height: 85vh;      /* 佔據 85% 的視窗高度 */
+            aspect-ratio: 1/1; /* 嚴格鎖定 1:1 正方形 */
+            background: #000;
+            border: 3px solid #d4a017; /* 金色邊框強化權威感 */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(212, 160, 23, 0.2);
+        }
+        
         #local-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
-        #right-feedback { width: 280px; background: #111; border-left: 1px solid #333; display: flex; flex-direction: column; }
-        #status-log { flex-grow: 1; overflow-y: auto; font-size: 14px; color: #888; padding: 15px; display: flex; flex-direction: column-reverse; }
-
-        /* 優化控制列佈局，防止按鈕被擠壓 */
+        /* 底欄優化：不擠壓畫面的前提下排列按鈕 */
         #bottom-bar { 
-            min-height: 140px; 
+            height: 120px; 
             background: #1a1a1a; 
-            border-top: 2px solid #333; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center;
             padding: 10px 20px; 
-            gap: 12px; 
+            gap: 10px;
         }
         
-        .button-group { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .btn-row { display: flex; gap: 8px; justify-content: center; }
+        #chat-field { width: 100%; background: #000; color: white; border: 1px solid #444; padding: 10px; font-size: 19px; border-radius: 5px; }
         
-        #chat-field { 
-            width: 100%; 
-            background: #000; 
-            color: white; 
-            border: 1px solid #d4a017; 
-            padding: 10px; 
-            font-size: 19px; 
-            border-radius: 5px; 
-            box-sizing: border-box;
-        }
-        
-        button { padding: 10px 18px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 17px; transition: 0.2s; }
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-
-        .onair-banner { position: absolute; top: 20px; left: 20px; background: #ff4d4d; padding: 8px 20px; border-radius: 30px; font-weight: bold; display: none; z-index: 10; box-shadow: 0 0 15px rgba(255,0,0,0.5); }
-        .rec-banner { position: absolute; top: 20px; right: 20px; background: #ff0000; padding: 8px 20px; border-radius: 30px; font-weight: bold; display: none; z-index: 10; animation: blink 1s infinite; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .onair-banner { position: absolute; top: 20px; left: 20px; background: #ff4d4d; padding: 10px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 100; }
+        .rec-banner { position: absolute; top: 20px; right: 20px; background: #ff0000; padding: 10px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 100; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body onload="startVideo()">
 
-<div id="left-pool">
-    <div style="font-size:12px; color:#555; text-align:center; margin-bottom:10px;">外包監控</div>
-</div>
+<div id="left-pool"></div>
 
 <div id="center-stage">
     <div id="my-video-stage">
-        <div id="onair-label" class="onair-banner">🔴 正在同步廣播</div>
-        <div id="rec-label" class="rec-banner">● REC 錄影中</div>
-        <video id="local-video" autoplay playsinline muted></video>
+        <div class="video-container">
+            <div id="onair-label" class="onair-banner">🔴 正在廣播</div>
+            <div id="rec-label" class="rec-banner">● REC 錄影中</div>
+            <video id="local-video" autoplay playsinline muted></video>
+        </div>
     </div>
     
     <div id="bottom-bar">
-        <input type="text" id="chat-field" placeholder="發送指令並記錄日誌..." onkeydown="if(event.key==='Enter') pushMsg()">
-        
-        <div class="button-group">
+        <input type="text" id="chat-field" placeholder="輸入指令..." onkeydown="if(event.key==='Enter') pushMsg()">
+        <div class="btn-row">
             <button id="rec-btn" style="background:#ff0000; color:white;" onclick="toggleRecording()">啟動錄影</button>
-            <button id="broadcast-btn" style="background:#d4a017; color:black;" onclick="toggleBroadcast()">開啟廣播</button>
+            <button id="broadcast-btn" style="background:#d4a017; color:black;" onclick="toggleBroadcast()">啟動廣播</button>
             <button style="background:#555; color:white;" onclick="shareScreen()">螢幕分享</button>
             <button style="background:#555; color:white;" onclick="document.getElementById('file-input').click()">檔案分享</button>
-            <button id="chat-btn" style="background:#4285f4; color:white;" onclick="openGoogleChat()">Chat頻道</button>
-            <button style="background:#333; color:gray; font-size:12px;" onclick="startVideo()">重連鏡頭</button>
-            
+            <button id="chat-btn" style="background:#4285f4; color:white;" onclick="openGoogleChat()">Google Chat</button>
             <input type="file" id="file-input" style="display:none" onchange="handleFile(this)">
         </div>
     </div>
 </div>
 
 <div id="right-feedback">
-    <div style="padding:15px; border-bottom:1px solid #333; color:var(--accent); font-weight:bold;">指揮日誌</div>
-    <div id="status-log"></div>
+    <div style="padding:15px; border-bottom:1px solid #333; color:var(--accent); font-weight:bold; font-size:14px;">系統日誌</div>
+    <div id="status-log" style="flex-grow:1; overflow-y:auto; font-size:14px; color:#888; padding:15px; display:flex; flex-direction:column-reverse;"></div>
 </div>
 
 <script>
@@ -93,23 +95,17 @@
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('local-video').srcObject = stream;
             window.localStream = stream;
-            addLog("🎥 視訊鏡頭已成功連接 [cite: 2026-01-07]");
-        } catch (err) { addLog("❌ 鏡頭連結失敗，請檢查權限"); }
+            addLog("🎥 視訊鏡頭已準備就緒 [cite: 2026-01-07]");
+        } catch (err) { addLog("❌ 鏡頭連結失敗"); }
     }
 
     async function shareScreen() {
         try {
             const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('local-video').srcObject = screenStream;
-            addLog("🖥️ 指揮官正在分享螢幕畫面 [cite: 2026-01-27]");
+            addLog("🖥️ 啟動螢幕分享模式 [cite: 2026-01-27]");
             screenStream.getVideoTracks()[0].onended = () => startVideo();
-        } catch (err) { addLog("ℹ️ 已取消螢幕分享"); }
-    }
-
-    function handleFile(input) {
-        if (input.files.length > 0) {
-            addLog(`📁 選取檔案：${input.files[0].name} [cite: 2026-01-27]`);
-        }
+        } catch (err) { addLog("ℹ️ 取消分享"); }
     }
 
     function toggleRecording() {
@@ -122,14 +118,12 @@
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = downloadVideo;
             mediaRecorder.start();
-            btn.innerText = "停止錄影"; btn.style.boxShadow = "0 0 10px #ff0000";
-            label.style.display = "block";
-            addLog("💾 系統啟動錄影引擎... [cite: 2026-01-27]");
+            btn.innerText = "停止錄影"; label.style.display = "block";
+            addLog("💾 錄影開始... [cite: 2026-01-27]");
         } else {
             mediaRecorder.stop();
-            btn.innerText = "啟動錄影"; btn.style.boxShadow = "none";
-            label.style.display = "none";
-            addLog("✅ 錄影完成，檔案已安全下載");
+            btn.innerText = "啟動錄影"; label.style.display = "none";
+            addLog("✅ 錄影結束並下載影片");
         }
     }
 
@@ -140,33 +134,31 @@
         if (isBroadcasting) {
             btn.innerText = "停止廣播"; btn.style.background = "#2ecc71";
             label.style.display = "block";
-            addLog("🔴 正在同步廣播訊號... [cite: 2026-01-07]");
+            addLog("🔴 廣播中... [cite: 2026-01-07]");
         } else {
-            btn.innerText = "開啟廣播"; btn.style.background = "#d4a017";
+            btn.innerText = "啟動廣播"; btn.style.background = "#d4a017";
             label.style.display = "none";
-            addLog("🟢 廣播訊號已停止");
+            addLog("🟢 廣播停止");
         }
     }
 
     function openGoogleChat() {
         window.open('https://chat.google.com/', 'VCommanderChat', 'width=450,height=800,left=1000');
-        addLog("💬 已調度 Google Chat 側邊頻道 [cite: 2026-01-07]");
+        addLog("💬 已開啟側邊通訊頻道 [cite: 2026-01-07]");
     }
 
     function downloadVideo() {
         const blob = new Blob(recordedChunks, { type: 'video/mp4' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `V-Commander_${new Date().getTime()}.mp4`;
-        a.click();
+        const a = document.createElement('a'); a.href = url;
+        a.download = `V-Commander_${new Date().getTime()}.mp4`; a.click();
     }
 
     function addLog(text) {
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.innerHTML = `<small style="color:#555;">${new Date().toLocaleTimeString()}</small> ${text}`;
+        entry.style.marginBottom = "5px";
+        entry.innerHTML = `<small>${new Date().toLocaleTimeString()}</small> ${text}`;
         log.prepend(entry);
     }
 

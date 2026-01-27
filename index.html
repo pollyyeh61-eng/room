@@ -2,29 +2,21 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 功能全修復版</title>
+    <title>V-Commander | 穩定修復版</title>
     <style>
-        :root { 
-            --left-width: 180px; 
-            --right-width: 280px; 
-            --soft-gold: #e5c07b; 
-            --gold-glow: rgba(229, 192, 123, 0.4); 
-            --bg-dark: #000; 
-        }
+        :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
+        /* 側邊欄位結構 */
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
 
-        .side-tabs { 
-            width: 48px; background: #080808; display: flex; flex-direction: column; 
-            padding: 20px 0 100px 0; justify-content: space-between; align-items: center; 
-        }
+        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 秀氣按鍵樣式 [cite: 2026-01-22] */
+        /* 按鍵與流金動畫 [cite: 2026-01-22, 2026-01-27] */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 130px; margin: 4px 0;
             border: 1px solid #1a1a1a; background: #080808;
@@ -35,7 +27,6 @@
         .left-tabs .tab-btn { font-size: 12px; color: var(--soft-gold); letter-spacing: 1px; }
         .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
 
-        /* 流金特效 [cite: 2026-01-27] */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
@@ -45,16 +36,13 @@
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
-        .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
-        #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
-
+        /* 主畫面與子畫面配置 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
-        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; }
+        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #000; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
-        #commander-pip { position: absolute; top: 15px; right: 15px; width: 150px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
+        /* 戰情日誌 */
         #status-log { 
             flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
             display: flex; flex-direction: column-reverse; padding: 15px; 
@@ -62,6 +50,9 @@
         }
         .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         .log-time { color: #222; margin-right: 8px; font-family: monospace; }
+        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
+        #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
+        .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
     </style>
 </head>
 <body onload="startVideo(); setScale(10);">
@@ -105,14 +96,46 @@
 
 <script>
     let isPIP = true;
+    let cameraStream = null;
 
     async function startVideo() {
         try {
-            const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('commander-pip').srcObject = s;
-            document.getElementById('main-display').srcObject = s;
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('commander-pip').srcObject = cameraStream;
+            document.getElementById('main-display').srcObject = cameraStream;
             addLog("🎥 系統核心連線成功 [2026-01-07]");
         } catch (e) { addLog("⚠️ 無法連線攝影機"); }
+    }
+
+    async function toggleShare() {
+        try {
+            const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const mainDisplay = document.getElementById('main-display');
+            mainDisplay.srcObject = shareStream;
+            addLog("🖥️ 視窗內容同步分享中");
+
+            // [關鍵修正] 監聽分享結束事件，確保回歸攝影機畫面
+            shareStream.getVideoTracks()[0].onended = () => {
+                resetToCamera();
+            };
+        } catch (e) { addLog("⚠️ 視窗分享已取消"); }
+    }
+
+    function resetToCamera() {
+        const mainDisplay = document.getElementById('main-display');
+        const pipDisplay = document.getElementById('commander-pip');
+        if (cameraStream) {
+            mainDisplay.srcObject = cameraStream;
+            pipDisplay.srcObject = cameraStream;
+            pipDisplay.style.display = isPIP ? 'block' : 'none';
+            addLog("🔄 分享結束，還原攝影機畫面");
+        }
+    }
+
+    function togglePIP() {
+        isPIP = !isPIP;
+        document.getElementById('commander-pip').style.display = isPIP ? 'block' : 'none';
+        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
     }
 
     function setScale(num) {
@@ -149,20 +172,6 @@
             btn.innerText = "廣播指令";
             addLog("🔇 指令廣播模式：關閉");
         }
-    }
-
-    function togglePIP() {
-        isPIP = !isPIP;
-        document.getElementById('commander-pip').style.display = isPIP ? 'block' : 'none';
-        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
-    }
-
-    async function toggleShare() {
-        try {
-            const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            document.getElementById('main-display').srcObject = s;
-            addLog("🖥️ 視窗內容同步分享中");
-        } catch (e) { addLog("⚠️ 視窗分享已取消"); }
     }
 
     function addLog(txt) {

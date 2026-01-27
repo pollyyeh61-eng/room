@@ -2,83 +2,65 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander 實時戰情室 | 精緻流金版</title>
+    <title>V-Commander 實時戰情室 | 子母畫面版</title>
     <style>
-        :root { --font-main: 16px; --bg-dark: #000000; --accent: #d4a017; --glow: rgba(212, 160, 23, 0.6); }
-        body { margin: 0; background: var(--bg-dark); color: #e0e0e0; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; display: flex; height: 100vh; font-size: var(--font-main); overflow: hidden; }
+        :root { --font-main: 16px; --bg-dark: #000000; --accent: #d4a017; --glow: rgba(212, 160, 23, 0.4); }
+        body { margin: 0; background: var(--bg-dark); color: #e0e0e0; font-family: sans-serif; display: flex; height: 100vh; font-size: var(--font-main); overflow: hidden; }
 
-        /* 左側監控池 - 更加隱蔽精緻 */
+        /* 左側監控池 */
         #left-pool { width: 40px; background: #050505; border-right: 1px solid #222; display: flex; flex-direction: column; align-items: center; padding-top: 30px; flex-shrink: 0; }
-        .pool-label { font-size: 10px; color: #333; writing-mode: vertical-lr; letter-spacing: 6px; text-transform: uppercase; }
+        .pool-label { font-size: 10px; color: #333; writing-mode: vertical-lr; letter-spacing: 6px; }
 
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
         
-        /* 16:10 闊銀幕 - 纖細金色邊框 */
+        /* 16:10 闊銀幕 */
         #my-video-stage { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
         .video-container {
             width: 100%; aspect-ratio: 16 / 10;
             background: #080808; border: 1px solid var(--accent);
             position: relative; overflow: hidden;
-            box-shadow: 0 0 15px rgba(212, 160, 23, 0.05);
         }
         #main-display { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* 子母畫面小視窗 (PIP) [cite: 2026-01-27] */
+        #pip-overlay {
+            position: absolute; top: 10px; right: 10px;
+            width: 180px; aspect-ratio: 1/1;
+            border: 1px solid #fff; border-radius: 4px;
+            display: none; object-fit: cover; transform: scaleX(-1);
+            z-index: 5; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
 
-        /* 底部輸入框 - 字體調小更優雅 [cite: 2026-01-07, 2026-01-22] */
+        /* 底部指令區 [cite: 2026-01-07] */
         #bottom-input-zone { height: 60px; background: #0a0a0a; padding: 10px 25px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
-        #chat-field { width: 100%; background: #000; color: #aaa; border: 1px solid #222; padding: 8px 15px; font-size: 16px; border-radius: 2px; outline: none; transition: 0.3s; }
-        #chat-field:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(212, 160, 23, 0.1); }
+        #chat-field { width: 100%; background: #000; color: #888; border: 1px solid #222; padding: 8px 15px; font-size: 16px; border-radius: 2px; outline: none; }
 
-        /* [關鍵修改] 側標按鍵：極致細長與流金特效 [cite: 2026-01-27] */
+        /* 極窄流金側標 */
         #side-tabs { 
-            width: 45px; /* 更窄 */
-            background: #080808; 
-            border-left: 1px solid #222; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 15px 0; 
-            gap: 12px; 
-            flex-shrink: 0;
-            align-items: center;
+            width: 45px; background: #080808; border-left: 1px solid #222; 
+            display: flex; flex-direction: column; padding: 10px 0; gap: 8px; 
+            flex-shrink: 0; align-items: center;
         }
         
         .tab-btn { 
-            width: 32px; /* 極窄細長形 */
-            min-height: 100px; 
-            border: 1px solid #333; 
-            background: rgba(20, 20, 20, 0.8);
-            border-radius: 2px; 
-            cursor: pointer; 
-            font-weight: 300; 
-            font-size: 15px; /* 縮小文字，更精緻 */
-            color: #999;
-            writing-mode: vertical-lr; 
-            text-align: center;
-            letter-spacing: 4px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            width: 32px; min-height: 85px; border: 1px solid #333; 
+            background: rgba(20, 20, 20, 0.8); border-radius: 2px; 
+            cursor: pointer; font-size: 14px; color: #777;
+            writing-mode: vertical-lr; text-align: center; letter-spacing: 4px;
+            transition: all 0.4s; position: relative;
         }
 
-        /* 流金發光動畫 [cite: 2026-01-27] */
-        .tab-btn::after {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(212, 160, 23, 0.1), transparent);
-            transform: rotate(45deg); transition: 0.8s;
-        }
+        .tab-btn:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--glow); }
+        .active-blue { border-color: #4285f4 !important; color: #fff !important; box-shadow: 0 0 10px rgba(66, 133, 244, 0.5) !important; }
+        .active-red { border-color: #ff0000 !important; color: #ff4d4d !important; }
+        .active-gold { border-color: var(--accent) !important; color: var(--accent) !important; }
 
-        .tab-btn:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 15px var(--glow); background: #111; }
-        .tab-btn:hover::after { left: 100%; }
-
-        /* 運作狀態的發光效果 */
-        .active-red { border-color: #ff0000 !important; color: #ff4d4d !important; box-shadow: 0 0 10px rgba(255, 0, 0, 0.3) !important; }
-        .active-gold { border-color: var(--accent) !important; color: var(--accent) !important; box-shadow: 0 0 10px var(--glow) !important; }
-
-        /* 右側日誌 - 現代窄版 */
+        /* 右側日誌區 */
         #right-log-zone { width: 220px; background: #050505; border-left: 1px solid #222; display: flex; flex-direction: column; flex-shrink: 0; }
-        .log-title { padding: 15px; border-bottom: 1px solid #1a1a1a; color: #444; font-size: 13px; letter-spacing: 2px; }
-        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
+        .log-title { padding: 15px; border-bottom: 1px solid #1a1a1a; color: #444; font-size: 13px; font-weight: bold; }
+        #status-log { flex-grow: 1; font-size: 12px; color: #444; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
 
-        .banner { position: absolute; top: 15px; left: 15px; color: #ff4d4d; font-size: 11px; letter-spacing: 1px; display: none; z-index: 10; border-left: 2px solid #ff4d4d; padding-left: 10px; }
+        .banner { position: absolute; top: 15px; left: 15px; color: #ff4d4d; font-size: 11px; display: none; z-index: 10; border-left: 2px solid #ff4d4d; padding-left: 10px; }
     </style>
 </head>
 <body onload="startVideo()">
@@ -90,39 +72,75 @@
 <div id="center-stage">
     <div id="my-video-stage">
         <div class="video-container">
-            <div id="onair-label" class="banner">SYSTEM ON AIR // 廣播中</div>
+            <div id="onair-label" class="banner">LIVE // 指揮廣播中</div>
             <video id="main-display" autoplay playsinline muted></video>
+            <video id="pip-overlay" autoplay playsinline muted></video>
         </div>
     </div>
     <div id="bottom-input-zone">
-        <input type="text" id="chat-field" placeholder="WAITING FOR COMMAND..." onkeydown="if(event.key==='Enter') pushMsg()">
+        <input type="text" id="chat-field" placeholder="等待指令輸入..." onkeydown="if(event.key==='Enter') pushMsg()">
     </div>
 </div>
 
 <div id="side-tabs">
     <button id="rec-btn" class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
     <button id="broadcast-btn" class="tab-btn" onclick="toggleBroadcast()">廣播指令</button>
-    <button class="tab-btn" onclick="toggleShare()">螢幕分享</button>
-    <button class="tab-btn" onclick="openLine()" style="color:#00c300;">LINE</button>
-    <button class="tab-btn" onclick="openGoogle()" style="color:#4285f4;">CHAT</button>
+    <button id="pip-btn" class="tab-btn" style="background:#1a1a1a;" onclick="togglePIP()">子母畫面</button>
+    <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
+    <button class="tab-btn" onclick="openLine()" style="color:#00c30088;">LINE</button>
+    <button class="tab-btn" onclick="openGoogle()" style="color:#4285f488;">CHAT</button>
 </div>
 
 <div id="right-log-zone">
-    <div class="log-title">戰情日誌 [cite: 2026-01-07]</div>
+    <div class="log-title">戰情日誌</div>
     <div id="status-log"></div>
 </div>
 
 <script>
-    let mediaRecorder, recordedChunks = [], isBroadcasting = false;
+    let mediaRecorder, recordedChunks = [], isBroadcasting = false, isPIP = false;
 
     async function startVideo() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            const mainV = document.getElementById('main-display');
-            mainV.srcObject = stream; mainV.style.transform = "scaleX(-1)";
+            document.getElementById('main-display').srcObject = stream;
+            document.getElementById('main-display').style.transform = "scaleX(-1)";
             window.localStream = stream;
-            addLog("🎥 系統鏡頭連線成功 [cite: 2026-01-07]");
-        } catch (err) { addLog("❌ 設備存取遭拒"); }
+            addLog("🎥 指揮官視訊就緒 [cite: 2026-01-07]");
+        } catch (err) { addLog("❌ 設備存取失敗"); }
+    }
+
+    // 子母畫面邏輯：讓指揮官縮小，主畫面顯示分享內容 [cite: 2026-01-27]
+    function togglePIP() {
+        const pipV = document.getElementById('pip-overlay');
+        const btn = document.getElementById('pip-btn');
+        isPIP = !isPIP;
+        if (isPIP) {
+            pipV.srcObject = window.localStream;
+            pipV.style.display = "block";
+            btn.classList.add('active-blue');
+            addLog("🖼️ 子母畫面開啟：指揮官進入監控位");
+        } else {
+            pipV.style.display = "none";
+            pipV.srcObject = null;
+            btn.classList.remove('active-blue');
+            addLog("🖼️ 子母畫面關閉");
+        }
+    }
+
+    // 搭配分享功能，將外包商視窗引進主畫面 [cite: 2026-01-27]
+    async function toggleShare() {
+        const mainV = document.getElementById('main-display');
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            mainV.srcObject = screenStream;
+            mainV.style.transform = "none";
+            addLog("🖥️ 主畫面已切換至外包商視窗");
+            screenStream.getVideoTracks()[0].onended = () => {
+                mainV.srcObject = window.localStream;
+                mainV.style.transform = "scaleX(-1)";
+                addLog("🎥 返回鏡頭主畫面");
+            };
+        } catch (err) { addLog("ℹ️ 取消分享"); }
     }
 
     function toggleRecording() {
@@ -137,10 +155,10 @@
                 a.download = `V_CMD_${Date.now()}.mp4`; a.click();
             };
             mediaRecorder.start(); btn.innerText = "正在錄製";
-            addLog("💾 錄影模組啟動 [cite: 2026-01-27]");
+            addLog("💾 啟動戰情錄影");
         } else {
             mediaRecorder.stop(); btn.innerText = "錄影存檔";
-            addLog("✅ 檔案已封裝下載");
+            addLog("✅ 錄影結束");
         }
     }
 
@@ -148,36 +166,21 @@
         const btn = document.getElementById('broadcast-btn'), banner = document.getElementById('onair-label');
         if (btn.classList.toggle('active-gold')) {
             banner.style.display = "block"; btn.innerText = "廣播中";
-            addLog("🔴 廣播模式：語音強制輸出 [cite: 2026-01-07]");
+            addLog("🔴 啟動廣播：全員禁音 [cite: 2026-01-07]");
         } else {
             banner.style.display = "none"; btn.innerText = "廣播指令";
-            addLog("🟢 恢復通訊監聽");
+            addLog("🟢 結束廣播模式");
         }
     }
 
-    function openLine() { window.location.href = "line://"; addLog("🟢 LINE 連線"); }
-    function openGoogle() { window.open('https://chat.google.com/', 'GChat', 'width=500,height=800'); addLog("🔵 G-Chat 連線"); }
-
-    async function toggleShare() {
-        const mainV = document.getElementById('main-display');
-        try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            mainV.srcObject = screenStream; mainV.style.transform = "none";
-            addLog("🖥️ 分享螢幕畫面");
-            screenStream.getVideoTracks()[0].onended = () => {
-                mainV.srcObject = window.localStream; mainV.style.transform = "scaleX(-1)";
-                addLog("🎥 返回指揮官視訊");
-            };
-        } catch (err) { addLog("ℹ️ 操作取消"); }
-    }
-
+    function openLine() { window.location.href = "line://"; addLog("🟢 連接 LINE"); }
+    function openGoogle() { window.open('https://chat.google.com/', 'GChat', 'width=500,height=800'); addLog("🔵 連接 G-Chat"); }
     function addLog(text) {
         const log = document.getElementById('status-log'), entry = document.createElement('div');
-        entry.style.marginBottom = "6px";
-        entry.innerHTML = `<span style="color:#333;">${new Date().toLocaleTimeString()}</span> ${text}`;
+        entry.style.marginBottom = "5px";
+        entry.innerHTML = `<span style="color:#222;">${new Date().toLocaleTimeString()}</span> ${text}`;
         log.prepend(entry);
     }
-
     function pushMsg() {
         const input = document.getElementById('chat-field');
         if(input.value) { addLog(`⚡ COMMAND: ${input.value}`); input.value = ""; }

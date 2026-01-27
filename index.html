@@ -143,6 +143,23 @@
         const input = document.getElementById('chat-field');
         if(input.value) { addLog(`⚡ 指令：${input.value}`); input.value = ""; }
     }
+    <script>
+    function openGoogleChat() {
+        // [cite: 2026-01-27] 設定視窗寬度與位置，確保不會覆蓋戰情室
+        const width = 450;
+        const height = window.screen.height;
+        const left = window.screen.width - width; // 自動靠右對齊
+        
+        addLog("💬 正在側邊啟動 Google Chat 指揮頻道... [cite: 2026-01-07]");
+        
+        window.open(
+            'https://chat.google.com/', 
+            'VCommanderChat', 
+            `width=${width},height=${height},left=${left},top=0,menubar=no,status=no,location=no`
+        );
+    }
+</script>
 </script>
 </body>
 </html>
+

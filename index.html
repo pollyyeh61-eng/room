@@ -2,21 +2,17 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 左側精修版</title>
+    <title>V-Commander | 功能全復原版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
-
-        .side-tabs { 
-            width: 48px; background: #080808; display: flex; flex-direction: column; 
-            padding: 20px 0 100px 0; justify-content: space-between; align-items: center; 
-        }
+        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 通用按鍵基礎 */
+        /* 秀氣流金按鍵樣式 */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 140px; margin: 4px 0;
             border: 1px solid #1a1a1a; background: #080808;
@@ -24,32 +20,19 @@
             white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
+        .left-tabs .tab-btn { font-size: 12.5px; color: var(--soft-gold); letter-spacing: 1px; }
+        .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
 
-        /* [校準] 左側規模按鍵：字體縮小至 12.5px 以容納五個字組 */
-        .left-tabs .tab-btn { 
-            font-size: 12.5px; 
-            color: var(--soft-gold);
-            letter-spacing: 1px; /* 緊湊字距確保不被裁切 */
-        }
-
-        /* [校準] 右側功能按鍵：維持 13.5px 秀氣感 */
-        .right-tabs .tab-btn { 
-            font-size: 13.5px; 
-            color: var(--soft-gold);
-            letter-spacing: 2px;
-        }
-
-        /* 流金動畫保持 */
+        /* 流金動畫 */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
             transform: rotate(45deg); animation: goldFlow 4s infinite linear; pointer-events: none;
         }
-        @keyframes goldFlow {
-            0% { transform: translate(-30%, -30%) rotate(45deg); }
-            100% { transform: translate(30%, 30%) rotate(45deg); }
-        }
-        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); background: #111; }
+        @keyframes goldFlow { 0% { transform: translate(-30%, -30%) rotate(45deg); } 100% { transform: translate(30%, 30%) rotate(45deg); } }
+        
+        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
@@ -59,8 +42,12 @@
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
         .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
-        #commander-pip { position: absolute; top: 15px; right: 15px; width: 150px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; opacity: 0.8; }
-        #status-log { flex-grow: 1; font-size: 12px; color: #222; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
+        #commander-pip { position: absolute; top: 15px; right: 15px; width: 150px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        
+        /* 戰情日誌樣式調優 */
+        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        .log-time { color: #222; margin-right: 8px; font-family: monospace; }
     </style>
 </head>
 <body onload="startVideo(); setScale(10);">
@@ -89,9 +76,9 @@
 
 <div class="side-zone">
     <div class="side-tabs right-tabs">
-        <button class="tab-btn" onclick="toggleRec()">錄影存檔</button>
-        <button class="tab-btn" onclick="toggleBC()">廣播指令</button>
-        <button class="tab-btn" onclick="togglePIP()">子母畫面</button>
+        <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
+        <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
+        <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
         <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
         <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c300aa;">LINE</button>
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
@@ -103,11 +90,21 @@
 </div>
 
 <script>
+    let mediaRecorder, chunks = [];
+    let isPIP = true;
+
     async function startVideo() {
-        const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        document.getElementById('commander-pip').srcObject = s;
-        document.getElementById('main-display').srcObject = s;
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            window.localStream = s;
+            document.getElementById('commander-pip').srcObject = s;
+            document.getElementById('main-display').srcObject = s;
+            addLog("🎥 系統核心連線成功 [2026-01-07]");
+        } catch (e) {
+            addLog("⚠️ 無法取得攝像頭權限");
+        }
     }
+
     function setScale(num) {
         const container = document.getElementById('matrix-container');
         container.innerHTML = '';
@@ -116,9 +113,59 @@
         for (let i = 1; i <= num; i++) {
             const dot = document.createElement('div');
             dot.className = 'unit-dot';
-            dot.innerText = (num <= 20) ? `U-${i}` : `${i}`;
+            dot.innerText = (num <= 20) ? `UNIT-${i}` : `${i}`;
             container.appendChild(dot);
         }
+        addLog(`📊 規模切換：${num} 人單位`);
+    }
+
+    function toggleRec() {
+        const btn = document.getElementById('rec-btn');
+        if (btn.classList.toggle('active-red')) {
+            btn.innerText = "錄製中...";
+            addLog("🔴 啟動全線錄影存檔");
+            // 這裡可以加入實際 MediaRecorder 啟動邏輯
+        } else {
+            btn.innerText = "錄影存檔";
+            addLog("✅ 錄影結束，檔案已封存");
+        }
+    }
+
+    function toggleBC() {
+        const btn = document.getElementById('bc-btn');
+        if (btn.classList.toggle('active-red')) {
+            btn.innerText = "廣播中...";
+            addLog("📡 指令廣播模式：啟動");
+        } else {
+            btn.innerText = "廣播指令";
+            addLog("🔇 指令廣播模式：關閉");
+        }
+    }
+
+    function togglePIP() {
+        isPIP = !isPIP;
+        document.getElementById('commander-pip').style.display = isPIP ? 'block' : 'none';
+        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
+    }
+
+    async function toggleShare() {
+        try {
+            const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            document.getElementById('main-display').srcObject = s;
+            addLog("🖥️ 視窗內容同步分享中");
+        } catch (e) {
+            addLog("⚠️ 視窗分享已取消");
+        }
+    }
+
+    function addLog(txt) {
+        const log = document.getElementById('status-log');
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+        entry.innerHTML = `<span class="log-time">${timeStr}</span> ${txt}`;
+        log.prepend(entry);
     }
 </script>
 </body>

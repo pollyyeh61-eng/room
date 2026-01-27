@@ -7,8 +7,8 @@
         :root { --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* 側邊結構 */
-        .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
+        /* 側邊欄位 */
+        .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; z-index: 10; }
         .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
 
         /* 黃金比例按鍵 18-20 [cite: 2026-01-22] */
@@ -20,36 +20,37 @@
             color: var(--soft-gold); letter-spacing: 2px;
         }
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); box-shadow: 0 0 15px var(--gold-glow); color: #fff; }
-        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; }
 
         /* 主舞台視訊區 */
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border: 1px solid #111; }
-        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #000; }
+        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; }
+        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; }
         #main-display { width: 100%; height: 100%; object-fit: contain; background: #000; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
         
-        /* 啟動遮罩 - 修正點擊問題 */
-        #start-overlay {
+        /* 核心修復：啟動按鈕層級調整 */
+        #start-mask {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 2000; /* 提高層級 */
+            background: rgba(0,0,0,0.9); z-index: 9999;
             display: flex; justify-content: center; align-items: center;
         }
-        .start-btn {
-            padding: 30px 60px; font-size: 28px; color: var(--soft-gold);
-            border: 3px solid var(--soft-gold); background: #0a0a0a; cursor: pointer;
-            border-radius: 15px; box-shadow: 0 0 30px var(--gold-glow);
-            transition: 0.3s; pointer-events: auto; /* 確保可被點擊 */
+        .real-start-btn {
+            padding: 30px 60px; font-size: 28px; font-weight: bold;
+            color: #000; background: var(--soft-gold); 
+            border: none; border-radius: 15px; cursor: pointer;
+            box-shadow: 0 0 30px var(--gold-glow);
+            transition: transform 0.2s, background 0.2s;
+            pointer-events: auto; /* 確保強制接收點擊 */
         }
-        .start-btn:hover { background: var(--soft-gold); color: #000; }
+        .real-start-btn:hover { transform: scale(1.05); background: #fff; }
 
-        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
+        #status-log { flex-grow: 1; font-size: 12px; color: #777; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="start-overlay">
-    <button class="start-btn" onclick="initSystem()">點擊啟動直播系統</button>
+<div id="start-mask">
+    <button class="real-start-btn" onclick="activateSystem()">點擊啟動直播系統</button>
 </div>
 
 <div class="side-zone" style="width: 180px;">
@@ -89,12 +90,12 @@
 <script>
     let cameraStream = null;
 
-    async function initSystem() {
-        // 點擊後立即移除遮罩
-        document.getElementById('start-overlay').style.display = 'none';
+    async function activateSystem() {
+        // 移除遮罩
+        document.getElementById('start-mask').style.display = 'none';
         
         try {
-            // 請求相機權限
+            // 請求權限並啟動
             cameraStream = await navigator.mediaDevices.getUserMedia({ 
                 video: { width: 1280, height: 720 }, 
                 audio: true 
@@ -103,27 +104,25 @@
             document.getElementById('main-display').srcObject = cameraStream;
             document.getElementById('commander-pip').srcObject = cameraStream;
             
-            addLog("🎥 相機系統已就緒 [2026-01-27]"); [cite: 2026-01-07]
+            addLog("🎥 相機連線成功 [2026-01-27]"); [cite: 2026-01-07]
             setScale(10);
         } catch (e) {
-            addLog("⚠️ 相機啟動失敗，請檢查瀏覽器權限");
+            addLog("⚠️ 無法取得鏡頭，請點擊網址左側鎖頭開啟權限");
             console.error(e);
         }
     }
 
     function toggleLive() {
         const btn = document.getElementById('live-btn');
-        const roomID = "V-Studio-" + Math.floor(Math.random()*9000 + 1000);
-        const meetUrl = `https://meet.jit.si/${roomID}`;
-
+        const meetUrl = `https://meet.jit.si/V-Commander-Live-${Math.floor(Math.random()*1000)}`;
         if (btn.classList.toggle('active-blue')) {
             btn.innerText = "直播中...";
-            addLog(`📡 直播中：${roomID}`); [cite: 2026-01-07]
-            addLog(`🔗 邀請網址：${meetUrl}`); [cite: 2026-01-07]
+            addLog(`📡 直播教室已啟動`); [cite: 2026-01-07]
+            addLog(`🔗 學生連結：${meetUrl}`); [cite: 2026-01-07]
             window.open(meetUrl, '_blank');
         } else {
             btn.innerText = "建立教室";
-            addLog("⏹️ 直播已離線");
+            addLog("⏹️ 直播已關閉");
         }
     }
 
@@ -131,12 +130,11 @@
         try {
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 分享視窗同步中..."); [cite: 2026-01-07]
+            addLog("🖥️ 視窗內容同步中"); [cite: 2026-01-07]
             shareStream.getVideoTracks()[0].onended = () => { 
                 document.getElementById('main-display').srcObject = cameraStream;
-                addLog("🔄 已恢復講者畫面"); 
             };
-        } catch (e) { addLog("⚠️ 分享已取消"); }
+        } catch (e) { addLog("⚠️ 分享取消"); }
     }
 
     function setScale(num) {
@@ -155,7 +153,7 @@
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
         entry.style.borderBottom = "1px solid #111";
-        entry.innerHTML = `<span style="color:#222;margin-right:8px;">${new Date().toLocaleTimeString()}</span> ${txt}`;
+        entry.innerHTML = `<span style="color:#333;margin-right:8px;">${new Date().toLocaleTimeString()}</span> ${txt}`;
         log.prepend(entry);
     }
 </script>

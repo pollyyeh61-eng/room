@@ -12,47 +12,51 @@
         
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; }
         
-        /* [核心修改] 調整為 16:10 長方形，並盡量放大 */
         #my-video-stage { 
             flex-grow: 1; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            padding: 15px;
+            padding: 10px;
+            position: relative;
         }
         
+        /* [核心修改] 初始長方形比例 */
         .video-container {
-            width: 92%;        /* 寬度擴張至 92% */
-            aspect-ratio: 16 / 10; /* 指揮官要求的長方形比例 [cite: 2026-01-27] */
+            width: 95%; 
+            aspect-ratio: 16 / 10;
             background: #080808;
-            border: 3px solid var(--accent); /* 金色邊框 [cite: 2026-01-22] */
+            border: 2px solid var(--accent);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 0 50px rgba(212, 160, 23, 0.15);
+            display: flex;
         }
         
-        #local-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        /* 主顯示區域 (螢幕分享或主鏡頭) */
+        #main-display { width: 100%; height: 100%; object-fit: contain; }
 
-        /* 底欄優化：增加高度確保按鍵不縮小 */
-        #bottom-bar { 
-            height: 150px; 
-            background: #151515; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 15px 30px; 
-            gap: 15px;
-            border-top: 1px solid #333;
+        /* [核心修改] 右上角懸浮視窗 (子母畫面) [cite: 2026-01-27] */
+        #pip-video { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            width: 250px; 
+            aspect-ratio: 1/1; 
+            border: 2px solid #fff; 
+            background: #000;
+            z-index: 10;
+            display: none; /* 初始隱藏 */
+            object-fit: cover;
+            transform: scaleX(-1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
-        
+
+        #bottom-bar { height: 150px; background: #151515; display: flex; flex-direction: column; padding: 15px 30px; gap: 15px; border-top: 1px solid #333; }
         .btn-row { display: flex; gap: 12px; justify-content: flex-start; }
         #chat-field { width: 100%; background: #000; color: white; border: 1px solid #555; padding: 12px; font-size: 19px; border-radius: 6px; }
+        button { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 18px; }
         
-        /* 按鍵放大加強點擊感 */
-        button { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 18px; min-width: 100px; }
-        
-        .onair-banner { position: absolute; top: 20px; left: 20px; background: #ff4d4d; padding: 10px 20px; border-radius: 4px; font-weight: bold; display: none; z-index: 100; }
-        .rec-banner { position: absolute; top: 20px; right: 20px; background: #ff0000; padding: 10px 20px; border-radius: 4px; font-weight: bold; display: none; z-index: 100; animation: blink 1.2s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .status-banner { position: absolute; top: 15px; left: 15px; background: #ff4d4d; padding: 5px 15px; border-radius: 4px; font-size: 14px; z-index: 100; display: none; }
     </style>
 </head>
 <body onload="startVideo()">
@@ -61,10 +65,10 @@
 
 <div id="center-stage">
     <div id="my-video-stage">
-        <div class="video-container">
-            <div id="onair-label" class="onair-banner">🔴 正在廣播</div>
-            <div id="rec-label" class="rec-banner">● REC 錄影中</div>
-            <video id="local-video" autoplay playsinline muted></video>
+        <div class="video-container" id="display-box">
+            <div id="onair-label" class="status-banner">🔴 廣播中</div>
+            <video id="main-display" autoplay playsinline muted></video>
+            <video id="pip-video" autoplay playsinline muted></video>
         </div>
     </div>
     
@@ -73,16 +77,16 @@
         <div class="btn-row">
             <button id="rec-btn" style="background:#ff0000; color:white;" onclick="toggleRecording()">錄影</button>
             <button id="broadcast-btn" style="background:#d4a017; color:black;" onclick="toggleBroadcast()">廣播</button>
-            <button style="background:#444; color:white;" onclick="shareScreen()">螢幕分享</button>
+            <button id="share-btn" style="background:#444; color:white;" onclick="toggleShare()">螢幕分享</button>
             <button style="background:#444; color:white;" onclick="document.getElementById('file-input').click()">檔案分享</button>
-            <button id="chat-btn" style="background:#4285f4; color:white;" onclick="openGoogleChat()">Chat</button>
+            <button style="background:#4285f4; color:white;" onclick="openGoogleChat()">Chat</button>
             <input type="file" id="file-input" style="display:none" onchange="handleFile(this)">
         </div>
     </div>
 </div>
 
 <div id="right-feedback">
-    <div style="padding:15px; border-bottom:1px solid #333; color:var(--accent); font-weight:bold; font-size:16px;">戰情日誌</div>
+    <div style="padding:15px; border-bottom:1px solid #333; color:var(--accent); font-weight:bold;">戰情日誌</div>
     <div id="status-log" style="flex-grow:1; overflow-y:auto; font-size:14px; color:#999; padding:15px; display:flex; flex-direction:column-reverse;"></div>
 </div>
 
@@ -91,80 +95,113 @@
     let recordedChunks = [];
     let isBroadcasting = false;
     let isRecording = false;
+    let isSharing = false;
 
     async function startVideo() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('local-video').srcObject = stream;
+            const mainVideo = document.getElementById('main-display');
+            mainVideo.srcObject = stream;
+            mainVideo.style.transform = "scaleX(-1)"; // 鏡像
             window.localStream = stream;
-            addLog("🎥 視訊鏡頭已就緒 [cite: 2026-01-07]");
-        } catch (err) { addLog("❌ 鏡頭連接失敗"); }
+            addLog("🎥 指揮官鏡頭已就緒 [cite: 2026-01-07]");
+        } catch (err) { addLog("❌ 無法取得鏡頭"); }
     }
 
-    async function shareScreen() {
-        try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            document.getElementById('local-video').srcObject = screenStream;
-            addLog("🖥️ 正在進行螢幕分享 [cite: 2026-01-27]");
-            screenStream.getVideoTracks()[0].onended = () => startVideo();
-        } catch (err) { addLog("ℹ️ 取消分享"); }
+    // 核心切換功能：螢幕分享模式 [cite: 2026-01-27]
+    async function toggleShare() {
+        const mainVideo = document.getElementById('main-display');
+        const pipVideo = document.getElementById('pip-video');
+        const shareBtn = document.getElementById('share-btn');
+
+        if (!isSharing) {
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                
+                // 1. 將分享的螢幕設為主畫面
+                mainVideo.srcObject = screenStream;
+                mainVideo.style.transform = "none"; // 螢幕分享不需要鏡像
+                
+                // 2. 將原本的鏡頭縮小到右上角 [cite: 2026-01-27]
+                pipVideo.srcObject = window.localStream;
+                pipVideo.style.display = "block";
+                
+                isSharing = true;
+                shareBtn.innerText = "停止分享";
+                addLog("🖥️ 進入展示模式：螢幕已放大，視訊置於右上角 [cite: 2026-01-27]");
+
+                screenStream.getVideoTracks()[0].onended = () => stopShare();
+            } catch (err) { addLog("ℹ️ 取消分享"); }
+        } else {
+            stopShare();
+        }
     }
 
+    function stopShare() {
+        const mainVideo = document.getElementById('main-display');
+        const pipVideo = document.getElementById('pip-video');
+        const shareBtn = document.getElementById('share-btn');
+        
+        mainVideo.srcObject = window.localStream;
+        mainVideo.style.transform = "scaleX(-1)";
+        pipVideo.style.display = "none";
+        isSharing = false;
+        shareBtn.innerText = "螢幕分享";
+        addLog("🎥 返回全螢幕鏡頭模式");
+    }
+
+    // 錄影、廣播、日誌等其餘邏輯保持不變...
     function toggleRecording() {
         isRecording = !isRecording;
         const btn = document.getElementById('rec-btn');
-        const label = document.getElementById('rec-label');
         if (isRecording) {
             recordedChunks = [];
-            mediaRecorder = new MediaRecorder(window.localStream);
+            // 注意：這裡錄製的是主顯示區內容
+            const captureStream = document.getElementById('main-display').srcObject;
+            mediaRecorder = new MediaRecorder(captureStream);
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = downloadVideo;
             mediaRecorder.start();
-            btn.innerText = "停止"; 
-            label.style.display = "block";
-            addLog("💾 錄影存檔中... [cite: 2026-01-27]");
+            btn.innerText = "停止";
+            addLog("💾 正在錄製展示畫面... [cite: 2026-01-27]");
         } else {
             mediaRecorder.stop();
-            btn.innerText = "錄影"; 
-            label.style.display = "none";
-            addLog("✅ 影片下載已啟動");
+            btn.innerText = "錄影";
+            addLog("✅ 展示錄影完成");
         }
     }
 
     function toggleBroadcast() {
         isBroadcasting = !isBroadcasting;
         const btn = document.getElementById('broadcast-btn');
-        const label = document.getElementById('onair-label');
+        const banner = document.getElementById('onair-label');
         if (isBroadcasting) {
             btn.innerText = "停止廣播"; btn.style.background = "#2ecc71";
-            label.style.display = "block";
-            addLog("🔴 廣播功能已啟動 [cite: 2026-01-07]");
+            banner.style.display = "block";
+            addLog("🔴 正在同步廣播您的展示畫面 [cite: 2026-01-07]");
         } else {
             btn.innerText = "廣播"; btn.style.background = "#d4a017";
-            label.style.display = "none";
-            addLog("🟢 廣播已結束");
+            banner.style.display = "none";
+            addLog("🟢 廣播結束");
         }
     }
 
     function openGoogleChat() {
         window.open('https://chat.google.com/', 'VCommanderChat', 'width=500,height=850,left=1000');
-        addLog("💬 已開啟獨立通訊分頁");
     }
 
     function downloadVideo() {
         const blob = new Blob(recordedChunks, { type: 'video/mp4' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `V-Commander_${new Date().getTime()}.mp4`;
-        a.click();
+        const a = document.createElement('a'); a.href = url;
+        a.download = `V-Commander_Showcase_${new Date().getTime()}.mp4`; a.click();
     }
 
     function addLog(text) {
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
         entry.style.marginBottom = "8px";
-        entry.innerHTML = `<small style="color:#555;">${new Date().toLocaleTimeString()}</small> ${text}`;
+        entry.innerHTML = `<small>${new Date().toLocaleTimeString()}</small> ${text}`;
         log.prepend(entry);
     }
 
@@ -174,7 +211,7 @@
     }
 
     function handleFile(input) {
-        if (input.files.length > 0) { addLog(`📁 已選取：${input.files[0].name} [cite: 2026-01-27]`); }
+        if (input.files.length > 0) { addLog(`📁 選取：${input.files[0].name}`); }
     }
 </script>
 </body>

@@ -2,14 +2,14 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 完整流金版</title>
+    <title>V-Commander | 全文字流金版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
 
-        /* 直式按鍵欄：位置維持高處，確保手感 [cite: 2026-01-27] */
+        /* [校準] 確保容器有足夠空間撐開按鍵 [cite: 2026-01-27] */
         .side-tabs { 
             width: 48px; background: #080808; display: flex; flex-direction: column; 
             padding: 20px 0 100px 0; 
@@ -18,24 +18,24 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* [關鍵校準] 放寬 max-height 確保四個字完整顯示 [cite: 2026-01-22] */
+        /* [核心修復] 全面放寬高度，並微調字距至 1.5px 以確保四字完整呈現 [cite: 2026-01-22] */
         .tab-btn { 
             width: 36px; flex-grow: 1; 
-            max-height: 140px; /* 增加高度限制以容納四個字 */
+            max-height: 150px; /* 進一步提高限制，確保左側四字回歸 */
             margin: 5px 0;
             border: 1px solid #1a1a1a; background: #080808;
             cursor: pointer; 
-            font-size: 13.5px; /* 秀氣字體 [cite: 2026-01-22] */
+            font-size: 13.5px; /* 秀氣字體尺寸 [cite: 2026-01-22] */
             color: var(--soft-gold); 
             writing-mode: vertical-lr; 
             text-align: center; 
-            letter-spacing: 2px; /* 微調字距確保文字緊湊完整 */
+            letter-spacing: 1.5px; /* 稍微縮減字距，讓四個字更安全地待在框內 */
             white-space: nowrap; 
             opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
 
-        /* 流金動畫效果 [cite: 2026-01-27] */
+        /* 流金動畫保持不變 [cite: 2026-01-27] */
         .tab-btn::after {
             content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
@@ -54,7 +54,6 @@
 
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
-        
         #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
         .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
 

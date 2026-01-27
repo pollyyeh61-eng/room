@@ -1,129 +1,34 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>V-Commander 實時戰情室</title>
-    <style>
-        /* [cite: 2026-01-22] 18-20 號字體規範 */
-        :root { --font-main: 19px; --bg-dark: #000000; --accent: #d4a017; }
-        body { margin: 0; background: var(--bg-dark); color: white; font-family: sans-serif; display: flex; height: 100vh; font-size: var(--font-main); overflow: hidden; }
-
-        #left-pool { width: 160px; background: #111; border-right: 1px solid #333; display: flex; flex-direction: column; padding: 10px; gap: 10px; }
-
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-        #my-video-stage { 
-            flex-grow: 1; background: #000; display: flex; align-items: center; justify-content: center;
-            border: 1px solid #222; position: relative; overflow: hidden;
-        }
-        
-        #local-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); background: #000; }
-
-        #right-feedback { width: 220px; background: #111; border-left: 1px solid #333; display: flex; flex-direction: column; padding: 15px; }
-        #status-log { flex-grow: 1; overflow-y: auto; font-size: 14px; color: #888; display: flex; flex-direction: column-reverse; }
-        .log-entry { margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 5px; }
-
-        #bottom-bar { height: 110px; background: #1a1a1a; border-top: 1px solid #333; display: flex; align-items: center; padding: 0 20px; gap: 20px; }
-        #chat-area { flex-grow: 1; }
-        #chat-field { width: 95%; background: #000; color: white; border: 1px solid #444; padding: 10px; font-size: 19px; border-radius: 5px; }
-        
-        .onair-banner { position: absolute; top: 20px; left: 20px; background: #ff4d4d; padding: 8px 25px; border-radius: 30px; font-weight: bold; display: none; z-index: 10; }
-        .member-box { width: 100%; aspect-ratio: 16/9; background: #222; border: 1px solid #444; border-radius: 4px; position: relative; }
-        .dot { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; border-radius: 50%; }
-        .red { background: #ff4d4d; } .green { background: #2ecc71; }
-    </style>
-</head>
-<body onload="startVideo()">
-
-<div id="left-pool">
-    <div style="font-size:12px; color:#555; text-align:center;">外包監控</div>
-    <div id="member-list" style="display:flex; flex-direction:column; gap:8px;"></div>
-</div>
-
-<div id="center-stage">
-    <div id="my-video-stage">
-        <div id="onair-label" class="onair-banner">🔴 正在同步廣播</div>
-        <video id="local-video" autoplay playsinline muted></video>
-        <div id="help-hint" style="position:absolute; color:#d4a017; text-align:center; padding:20px; display:none;">
-            <h3>⚠️ 偵測到瀏覽器攔截</h3>
-            <p>請點擊網址列左側的「鎖頭」圖示</p>
-            <p>將「攝影機」設為「允許」後重新整理</p>
-        </div>
+<div id="bottom-bar">
+    <div id="chat-area">
+        <input type="text" id="chat-field" placeholder="發送 Google Chat 指令..." onkeydown="if(event.key==='Enter') pushMsg()">
     </div>
     
-    <div id="bottom-bar">
-        <div id="chat-area">
-            <input type="text" id="chat-field" placeholder="發送 Google Chat 指令..." onkeydown="if(event.key==='Enter') pushMsg()">
-        </div>
-        <button id="broadcast-btn" style="background:#d4a017; color:black; padding:10px 20px; border-radius:5px; font-weight:bold;" onclick="doBroadcast()">啟動廣播</button>
-        <button onclick="addParticipant()" style="background:#444; color:white; padding:10px; border-radius:5px;">模擬連接</button>
-    </div>
-</div>
-
-<div id="right-feedback">
-    <div style="color:var(--accent); margin-bottom:10px; font-size:16px;">系統日誌</div>
-    <div id="status-log"></div>
+    <button id="cam-trigger" style="background:#4285f4; color:white; padding:10px 20px; border-radius:5px; font-weight:bold; margin-right:10px;" onclick="startVideo()">連結鏡頭</button>
+    
+    <button id="broadcast-btn" style="background:#d4a017; color:black; padding:10px 20px; border-radius:5px; font-weight:bold;" onclick="doBroadcast()">啟動廣播</button>
+    <button onclick="addParticipant()" style="background:#444; color:white; padding:10px; border-radius:5px; margin-left:10px;">模擬連接</button>
 </div>
 
 <script>
-    let active = false;
-
+    // 優化後的啟動邏輯 [cite: 2026-01-27]
     async function startVideo() {
-        addLog("正在嘗試啟動視訊...");
+        const helpHint = document.getElementById('help-hint');
+        const videoElement = document.getElementById('local-video');
+        const camBtn = document.getElementById('cam-trigger');
+
+        addLog("正在手動喚醒視訊模組... [cite: 2026-01-07]");
+        
         try {
-            // 請求視訊權限 [cite: 2026-01-27]
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            const videoElement = document.getElementById('local-video');
             videoElement.srcObject = stream;
-            document.getElementById('help-hint').style.display = 'none';
+            
+            // 成功連結後，隱藏警告與按鈕 [cite: 2026-01-07]
+            helpHint.style.display = 'none';
+            camBtn.style.display = 'none'; 
             addLog("🎥 視訊鏡頭已成功連接 [cite: 2026-01-07]");
         } catch (err) {
-            document.getElementById('help-hint').style.display = 'block';
-            if (err.name === 'NotAllowedError') {
-                addLog("❌ 權限遭拒：請手動開啟權限 [cite: 2026-01-07]");
-            } else {
-                addLog("❌ 錯誤：" + err.message + " [cite: 2026-01-07]");
-            }
+            helpHint.style.display = 'block';
+            addLog("❌ 喚醒失敗：" + err.message + " [cite: 2026-01-07]");
         }
-    }
-
-    // ... (其餘 addParticipant, doBroadcast, pushMsg, addLog 函數維持原樣) ...
-    function addParticipant() {
-        const list = document.getElementById('member-list');
-        const box = document.createElement('div');
-        box.className = 'member-box';
-        box.innerHTML = `<div class="dot ${active ? 'red' : 'green'}"></div>`;
-        list.appendChild(box);
-        addLog("新外包人員已加入 [cite: 2026-01-07]");
-    }
-    function doBroadcast() {
-        active = !active;
-        const btn = document.getElementById('broadcast-btn');
-        const label = document.getElementById('onair-label');
-        const dots = document.querySelectorAll('.dot');
-        if(active) {
-            btn.innerText = "結束廣播"; btn.style.background = "#2ecc71";
-            label.style.display = "block";
-            dots.forEach(d => d.className = "dot red");
-            addLog("🔴 啟動廣播：禁言通知發送 [cite: 2026-01-07]");
-        } else {
-            btn.innerText = "啟動廣播"; btn.style.background = "#d4a017";
-            label.style.display = "none";
-            dots.forEach(d => d.className = "dot green");
-            addLog("🟢 結束廣播：權限開放 [cite: 2026-01-07]");
-        }
-    }
-    function pushMsg() {
-        const input = document.getElementById('chat-field');
-        if(input.value) { addLog(`指令：${input.value} [cite: 2026-01-07]`); input.value = ""; }
-    }
-    function addLog(text) {
-        const log = document.getElementById('status-log');
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        const time = new Date().toLocaleTimeString();
-        entry.innerHTML = `<small>${time}</small><br>${text}`;
-        log.prepend(entry);
     }
 </script>
-</body>
-</html>

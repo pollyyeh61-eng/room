@@ -2,106 +2,144 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 直播教室</title>
+    <title>V-Commander | 全功能穩定版</title>
     <style>
-        :root { --soft-gold: #e5c07b; --bg-dark: #000; }
+        :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
-        .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; z-index: 10; }
-        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
 
-        /* 字尺寸以黃金比例 18-20 為主 [cite: 2026-01-22] */
+        .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
+        .left-zone { width: var(--left-width); }
+        .right-zone { width: var(--right-width); }
+
+        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
+        .left-tabs { border-left: 1px solid #151515; order: 2; } 
+        .right-tabs { border-right: 1px solid #151515; order: 1; }
+
+        /* 黃金比例按鍵 18-20 */
         .tab-btn { 
-            width: 38px; flex-grow: 1; max-height: 90px; margin: 2px 0;
+            width: 36px; flex-grow: 1; max-height: 80px; margin: 2px 0;
             border: 1px solid #1a1a1a; background: #080808;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
-            white-space: nowrap; opacity: 0.8; transition: 0.3s; font-size: 14px; 
-            color: var(--soft-gold); letter-spacing: 2px;
+            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
+            position: relative; overflow: hidden; font-size: 14px;
         }
-        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; }
-        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; }
+        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
+        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; }
 
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; }
-        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #050505; }
-        #main-display { width: 100%; height: 100%; object-fit: contain; }
-        #commander-pip { position: absolute; top: 15px; right: 15px; width: 180px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #000; cursor: pointer; }
         
-        #status-log { flex-grow: 1; font-size: 13px; color: #666; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
-        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; font-weight: bold; }
+        /* 畫面引導提示 */
+        .video-placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); z-index: 5; color: var(--soft-gold); font-size: 20px; }
+        
+        #main-display { width: 100%; height: 100%; object-fit: contain; }
+        #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        
+        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
+        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
+        #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
+        .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
     </style>
 </head>
-<body onload="autoInit()">
+<body>
 
-<div class="side-zone" style="width: 180px;">
-    <div style="flex-grow:1;">
+<div class="side-zone left-zone">
+    <div class="side-content" style="order:1;">
         <div class="side-title">MONITOR POOL</div>
-        <div id="matrix-container" style="padding:10px;"></div>
+        <div id="matrix-container"></div>
+    </div>
+    <div class="side-tabs left-tabs">
+        <button class="tab-btn" onclick="setScale(10)">10人規模</button>
+        <button class="tab-btn" onclick="setScale(50)">50人規模</button>
+        <button class="tab-btn" onclick="setScale(100)">100人規模</button>
     </div>
 </div>
 
 <div id="center-stage">
-    <div class="video-container">
+    <div class="video-container" onclick="startVideo()">
+        <div id="v-hint" class="video-placeholder">點擊此處啟動畫面</div>
         <video id="main-display" autoplay playsinline></video>
         <video id="commander-pip" autoplay playsinline muted></video>
     </div>
 </div>
 
-<div class="side-zone" style="width: 280px;">
-    <div class="side-tabs">
-        <button class="tab-btn" onclick="window.location.href='index.html'" style="color: #ff9800;">回主畫面</button>
-        <button id="live-btn" class="tab-btn" onclick="toggleLive()">建立教室</button>
-        <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
-        <button class="tab-btn" onclick="window.open('https://line.me/')" style="color:#00c300;">LINE</button>
+<div class="side-zone right-zone">
+    <div class="side-tabs right-tabs">
+        <button class="tab-btn" onclick="window.location.href='index.html'" style="color:#ff9800; font-weight:bold;">回主畫面</button>
+        <button id="live-btn" class="tab-btn" onclick="createLiveClass()" style="color:#4285f4;">啟動直播</button>
+        <button id="invite-btn" class="tab-btn" onclick="copyInviteLink()" style="color:#e5c07b;">分享連結</button>
+        <button class="tab-btn" onclick="toggleShare()" style="color:#fff;">分享視窗</button>
+        <button class="tab-btn" onclick="window.open('https://line.me/')" style="color:#00c300aa;">LINE</button>
     </div>
-    <div style="flex-grow:1; display: flex; flex-direction: column;">
-        <div class="side-title">直播日誌</div>
+    <div class="side-content" style="order:2;">
+        <div class="side-title">戰情日誌</div>
         <div id="status-log"></div>
     </div>
 </div>
 
 <script>
     let cameraStream = null;
+    let currentRoomUrl = "";
 
-    async function autoInit() {
+    // 啟動畫面功能 (點擊中間即啟動)
+    async function startVideo() {
         try {
-            // 直接請求權限，不再透過按鈕遮罩
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('main-display').srcObject = cameraStream;
             document.getElementById('commander-pip').srcObject = cameraStream;
-            addLog("🎥 系統已自動連線鏡頭 [2026-01-27]"); [cite: 2026-01-07]
+            document.getElementById('v-hint').style.display = 'none';
+            addLog("🎥 相機系統連線成功 [2026-01-27]");
         } catch (e) {
-            addLog("⚠️ 請點擊瀏覽器上方「允許使用相機」以顯示畫面");
+            addLog("⚠️ 無法取得相機，請允許瀏覽器權限");
         }
     }
 
-    function toggleLive() {
-        const btn = document.getElementById('live-btn');
-        const roomID = "V-Studio-" + Math.floor(Math.random()*900);
-        const meetUrl = `https://meet.jit.si/${roomID}`;
+    // 建立直播教室並接學員進來
+    function createLiveClass() {
+        const roomID = "V-Studio-" + Math.floor(Math.random()*9000 + 1000);
+        currentRoomUrl = `https://meet.jit.si/${roomID}`;
         
-        if (btn.classList.toggle('active-blue')) {
-            btn.innerText = "直播中...";
-            addLog(`📡 直播教室已建立：${roomID}`); [cite: 2026-01-07]
-            addLog(`🔗 學生入口：${meetUrl}`); [cite: 2026-01-07]
-            window.open(meetUrl, '_blank');
-        } else {
-            btn.innerText = "建立教室";
-            addLog("⏹️ 直播已關閉");
+        document.getElementById('live-btn').classList.add('active-blue');
+        addLog(`📡 直播教室已建立：${roomID}`);
+        addLog(`🔗 教室連結：${currentRoomUrl}`);
+        window.open(currentRoomUrl, '_blank');
+    }
+
+    // 分享鍵：將連結複製到剪貼簿，方便接學員
+    function copyInviteLink() {
+        if (!currentRoomUrl) {
+            addLog("⚠️ 請先點擊「啟動直播」以生成連結");
+            return;
         }
+        navigator.clipboard.writeText(currentRoomUrl);
+        addLog("📋 邀請連結已複製！傳送給學員即可進入 [2026-01-07]");
     }
 
     async function toggleShare() {
         try {
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 正在分享教材視窗"); [cite: 2026-01-07]
-        } catch (e) { addLog("⚠️ 分享取消"); }
+            addLog("🖥️ 正在分享教材畫面");
+        } catch (e) { addLog("⚠️ 分享已取消"); }
+    }
+
+    function setScale(num) {
+        const container = document.getElementById('matrix-container');
+        container.innerHTML = '';
+        for (let i = 1; i <= Math.min(num, 10); i++) {
+            const dot = document.createElement('div');
+            dot.className = 'unit-dot';
+            dot.innerText = `UNIT-${i}`;
+            container.appendChild(dot);
+        }
+        addLog(`📊 設定規模：${num}人規模`);
     }
 
     function addLog(txt) {
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
         entry.style.borderBottom = "1px solid #111";
-        entry.innerHTML = `<span style="color:#222;">${new Date().toLocaleTimeString()}</span> ${txt}`;
+        entry.innerHTML = `<span style="color:#222;margin-right:5px;">${new Date().toLocaleTimeString()}</span> ${txt}`;
         log.prepend(entry);
     }
 </script>

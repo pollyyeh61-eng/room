@@ -7,7 +7,6 @@
         :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* 側邊欄位結構 */
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
@@ -16,9 +15,9 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 按鍵與流金動畫 [cite: 2026-01-22] */
+        /* 黃金比例按鍵 [cite: 2026-01-22] */
         .tab-btn { 
-            width: 36px; flex-grow: 1; max-height: 110px; margin: 2px 0;
+            width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
             border: 1px solid #1a1a1a; background: #080808;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
             white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
@@ -36,13 +35,11 @@
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
-        /* 主舞台與視訊佈局 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
         .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #000; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
         
-        /* 戰情日誌與標題 */
         #status-log { 
             flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
             display: flex; flex-direction: column-reverse; padding: 15px; 
@@ -81,8 +78,7 @@
 
 <div class="side-zone right-zone">
     <div class="side-tabs right-tabs">
-        <button class="tab-btn" onclick="window.location.href='專家版.html'" style="color: #4285f4; font-weight: bold;">直播課程</button>
-        
+        <button class="tab-btn" onclick="window.location.href='專家版.html'" style="color:#4285f4; font-weight:bold;">直播課程</button>
         <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
         <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
         <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
@@ -100,31 +96,32 @@
     let isPIP = true;
     let cameraStream = null;
 
+    // 強制重啟相機邏輯
     async function startVideo() {
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('commander-pip').srcObject = cameraStream;
             document.getElementById('main-display').srcObject = cameraStream;
-            addLog("🎥 系統核心連線成功 [2026-01-07]"); [cite: 2026-01-07]
-        } catch (e) { addLog("⚠️ 無法連線攝影機"); }
+            addLog("🎥 網路相機連線成功 [2026-01-07]"); 
+        } catch (e) { 
+            addLog("⚠️ 相機啟動失敗，請確認權限"); 
+            console.error(e);
+        }
     }
 
     async function toggleShare() {
         try {
-            const shareStream = await navigator.mediaDevices.getDisplayMedia({ 
-                video: { displaySurface: "browser", cursor: "always" },
-                audio: true 
-            });
+            const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🌐 網頁內容：訊號已接入主舞台"); [cite: 2026-01-07]
+            addLog("🖥️ 視窗內容同步分享中");
             shareStream.getVideoTracks()[0].onended = () => { resetToCamera(); };
-        } catch (e) { addLog("⚠️ 分享操作已取消"); }
+        } catch (e) { addLog("⚠️ 分享操作取消"); }
     }
 
     function resetToCamera() {
         if (cameraStream) {
             document.getElementById('main-display').srcObject = cameraStream;
-            addLog("🔄 分享結束，還原監控模式"); [cite: 2026-01-07]
+            addLog("🔄 分享結束，回歸相機畫面");
         }
     }
 
@@ -137,37 +134,28 @@
     function setScale(num) {
         const container = document.getElementById('matrix-container');
         container.innerHTML = '';
-        let cols = (num <= 20) ? 1 : (num <= 50 ? 4 : 8);
-        container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        container.style.gridTemplateColumns = `repeat(${num <= 20 ? 1 : 4}, 1fr)`;
         for (let i = 1; i <= num; i++) {
             const dot = document.createElement('div');
             dot.className = 'unit-dot';
             dot.innerText = (num <= 20) ? `UNIT-${i}` : `${i}`;
             container.appendChild(dot);
         }
-        addLog(`📊 規模切換：${num} 人單位`);
+        addLog(`📊 規模：${num} 人單位`);
     }
 
     function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        if (btn.classList.toggle('active-red')) {
-            btn.innerText = "錄製中...";
-            addLog("🔴 啟動全線錄影存檔");
-        } else {
-            btn.innerText = "錄影存檔";
-            addLog("✅ 錄影結束，檔案已封存");
-        }
+        btn.classList.toggle('active-red');
+        btn.innerText = btn.classList.contains('active-red') ? "錄製中..." : "錄影存檔";
+        addLog(btn.classList.contains('active-red') ? "🔴 啟動全線錄影" : "✅ 錄影檔案已封存");
     }
 
     function toggleBC() {
         const btn = document.getElementById('bc-btn');
-        if (btn.classList.toggle('active-red')) {
-            btn.innerText = "廣播中...";
-            addLog("📡 指令廣播模式：啟動");
-        } else {
-            btn.innerText = "廣播指令";
-            addLog("🔇 指令廣播模式：關閉");
-        }
+        btn.classList.toggle('active-red');
+        btn.innerText = btn.classList.contains('active-red') ? "廣播中..." : "廣播指令";
+        addLog(btn.classList.contains('active-red') ? "📡 指令廣播：啟動" : "🔇 指令廣播：關閉");
     }
 
     function addLog(txt) {

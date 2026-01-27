@@ -28,17 +28,19 @@
         #main-display { width: 100%; height: 100%; object-fit: contain; background: #000; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
         
-        /* 啟動遮罩 (解決黑屏問題) */
+        /* 啟動遮罩 - 修正點擊問題 */
         #start-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000;
+            background: rgba(0,0,0,0.85); z-index: 2000; /* 提高層級 */
             display: flex; justify-content: center; align-items: center;
         }
         .start-btn {
-            padding: 20px 40px; font-size: 24px; color: var(--soft-gold);
-            border: 2px solid var(--soft-gold); background: transparent; cursor: pointer;
-            border-radius: 10px; box-shadow: 0 0 20px var(--gold-glow);
+            padding: 30px 60px; font-size: 28px; color: var(--soft-gold);
+            border: 3px solid var(--soft-gold); background: #0a0a0a; cursor: pointer;
+            border-radius: 15px; box-shadow: 0 0 30px var(--gold-glow);
+            transition: 0.3s; pointer-events: auto; /* 確保可被點擊 */
         }
+        .start-btn:hover { background: var(--soft-gold); color: #000; }
 
         #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; font-weight: bold; }
@@ -55,7 +57,7 @@
         <div class="side-title">MONITOR POOL</div>
         <div id="matrix-container" style="padding:10px;"></div>
     </div>
-    <div class="side-tabs">
+    <div class="side-tabs" style="border-left: 1px solid #151515;">
         <button class="tab-btn" onclick="setScale(10)">10人規模</button>
         <button class="tab-btn" onclick="setScale(50)">50人規模</button>
         <button class="tab-btn" onclick="setScale(100)">100人規模</button>
@@ -70,11 +72,13 @@
 </div>
 
 <div class="side-zone" style="width: 280px;">
-    <div class="side-tabs">
-        <button class="tab-btn" onclick="window.location.href='index.html'" style="color: #ff9800;">回主畫面</button>
+    <div class="side-tabs" style="border-right: 1px solid #151515;">
+        <button class="tab-btn" onclick="window.location.href='index.html'" style="color: #ff9800; font-weight: bold;">回主畫面</button>
         <button id="live-btn" class="tab-btn" onclick="toggleLive()">建立教室</button>
+        <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
+        <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
         <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
-        <button class="tab-btn" onclick="window.open('https://line.me/')" style="color:#00c300;">LINE</button>
+        <button class="tab-btn" onclick="window.open('https://line.me/')" style="color:#00c300aa;">LINE</button>
     </div>
     <div style="flex-grow:1; display: flex; flex-direction: column;">
         <div class="side-title">直播日誌</div>
@@ -86,30 +90,23 @@
     let cameraStream = null;
 
     async function initSystem() {
-        // 隱藏啟動遮罩
+        // 點擊後立即移除遮罩
         document.getElementById('start-overlay').style.display = 'none';
         
         try {
-            // 請求相機權限並確保視訊流注入
+            // 請求相機權限
             cameraStream = await navigator.mediaDevices.getUserMedia({ 
                 video: { width: 1280, height: 720 }, 
                 audio: true 
             });
             
-            const mainVid = document.getElementById('main-display');
-            const pipVid = document.getElementById('commander-pip');
+            document.getElementById('main-display').srcObject = cameraStream;
+            document.getElementById('commander-pip').srcObject = cameraStream;
             
-            mainVid.srcObject = cameraStream;
-            pipVid.srcObject = cameraStream;
-            
-            // 確保影片播放
-            mainVid.onloadedmetadata = () => mainVid.play();
-            pipVid.onloadedmetadata = () => pipVid.play();
-
-            addLog("🎥 相機已成功連線 [2026-01-27]"); [cite: 2026-01-07]
+            addLog("🎥 相機系統已就緒 [2026-01-27]"); [cite: 2026-01-07]
             setScale(10);
         } catch (e) {
-            addLog("⚠️ 無法取得相機畫面，請確認權限設定");
+            addLog("⚠️ 相機啟動失敗，請檢查瀏覽器權限");
             console.error(e);
         }
     }
@@ -121,12 +118,12 @@
 
         if (btn.classList.toggle('active-blue')) {
             btn.innerText = "直播中...";
-            addLog(`📡 教室已建立：${roomID}`); [cite: 2026-01-07]
-            addLog(`🔗 學生連結：${meetUrl}`); [cite: 2026-01-07]
+            addLog(`📡 直播中：${roomID}`); [cite: 2026-01-07]
+            addLog(`🔗 邀請網址：${meetUrl}`); [cite: 2026-01-07]
             window.open(meetUrl, '_blank');
         } else {
             btn.innerText = "建立教室";
-            addLog("⏹️ 直播已關閉");
+            addLog("⏹️ 直播已離線");
         }
     }
 
@@ -134,12 +131,12 @@
         try {
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 正在分享教材畫面"); [cite: 2026-01-07]
+            addLog("🖥️ 分享視窗同步中..."); [cite: 2026-01-07]
             shareStream.getVideoTracks()[0].onended = () => { 
                 document.getElementById('main-display').srcObject = cameraStream;
-                addLog("🔄 分享結束"); 
+                addLog("🔄 已恢復講者畫面"); 
             };
-        } catch (e) { addLog("⚠️ 分享取消"); }
+        } catch (e) { addLog("⚠️ 分享已取消"); }
     }
 
     function setScale(num) {
@@ -151,14 +148,14 @@
             dot.innerText = "UNIT-" + i;
             container.appendChild(dot);
         }
-        addLog(`📊 設定學員規模：${num} 人`);
+        addLog(`📊 規模：${num} 人單位`);
     }
 
     function addLog(txt) {
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
         entry.style.borderBottom = "1px solid #111";
-        entry.innerHTML = `<span style="color:#222;">${new Date().toLocaleTimeString()}</span> ${txt}`;
+        entry.innerHTML = `<span style="color:#222;margin-right:8px;">${new Date().toLocaleTimeString()}</span> ${txt}`;
         log.prepend(entry);
     }
 </script>

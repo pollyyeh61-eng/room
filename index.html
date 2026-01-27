@@ -2,38 +2,39 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 中心緊湊對稱版</title>
+    <title>V-Commander | 核心功能回歸版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* 左右 180px 對稱容器 */
+        /* 側邊 180px 容器 */
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
 
-        /* [核心修改] 直式按鍵欄：貼近中央畫面 [cite: 2026-01-27] */
+        /* 直式按鍵欄：緊貼中央畫面 [cite: 2026-01-27] */
         .side-tabs { 
-            width: 42px; background: #080808; display: flex; flex-direction: column; padding: 10px 0; gap: 5px; align-items: center; 
+            width: 42px; background: #080808; display: flex; flex-direction: column; padding: 10px 0; gap: 4px; align-items: center; 
         }
-        .left-tabs { border-left: 1px solid #151515; order: 2; } /* 放在左側容器的右邊 */
-        .right-tabs { border-right: 1px solid #151515; order: 1; } /* 放在右側容器的左邊 */
+        .left-tabs { border-left: 1px solid #151515; order: 2; } 
+        .right-tabs { border-right: 1px solid #151515; order: 1; }
 
         /* 淡金微刻按鍵 [cite: 2026-01-22, 2026-01-27] */
         .tab-btn { 
-            width: 30px; min-height: 65px; border: 1px solid #222; background: #0a0a0a;
+            width: 30px; min-height: 60px; border: 1px solid #222; background: #0a0a0a;
             cursor: pointer; font-size: 9px; color: var(--soft-gold); writing-mode: vertical-lr; 
-            text-align: center; letter-spacing: 3px; opacity: 0.8; transition: 0.3s;
+            text-align: center; letter-spacing: 2px; opacity: 0.8; transition: 0.3s;
         }
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
-        /* 動態池與日誌內容區：推往最外側 */
+        /* 內容區：推向兩側 */
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .side-title { padding: 12px 15px; border-bottom: 1px solid #151515; color: #444; font-size: 11px; letter-spacing: 2px; font-weight: bold; }
         
         #matrix-container { flex-grow: 1; display: grid; gap: 4px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { border: 1px solid #222; background: #0a0a0a; color: #444; text-align: center; font-size: 9px; }
-        .active { border-color: #00ff00 !important; color: #00ff00 !important; box-shadow: 0 0 8px rgba(0,255,0,0.3); }
+        .unit-dot { border: 1px solid #222; background: #0a0a0a; color: #444; text-align: center; font-size: 9px; padding: 4px 0; }
+        .active-sig { border-color: #00ff00 !important; color: #00ff00 !important; box-shadow: 0 0 8px rgba(0,255,0,0.3); }
 
-        /* 中央舞台與指揮官位 */
+        /* 中央舞台 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #1a1a1a; border-right: 1px solid #1a1a1a; }
         .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #1a1a1a; position: relative; background: #050505; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
@@ -44,17 +45,18 @@
 </head>
 <body onload="startVideo(); setScale(10);">
 
-<div id="left-zone" class="side-zone">
+<div class="side-zone">
     <div class="side-content" style="order:1;">
         <div class="side-title">MONITOR POOL</div>
         <div id="matrix-container"></div>
     </div>
     <div class="side-tabs left-tabs">
-        <button class="tab-btn" onclick="setScale(10)">10人模式</button>
-        <button class="tab-btn" onclick="setScale(20)">20人模式</button>
-        <button class="tab-btn" onclick="setScale(30)">30人模式</button>
-        <button class="tab-btn" onclick="setScale(50)">50人模式</button>
-        <button class="tab-btn" onclick="setScale(100)">100人模式</button>
+        <button class="tab-btn" onclick="setScale(10)">10人規模</button>
+        <button class="tab-btn" onclick="setScale(20)">20人規模</button>
+        <button class="tab-btn" onclick="setScale(30)">30人規模</button>
+        <button class="tab-btn" onclick="setScale(40)">40人規模</button>
+        <button class="tab-btn" onclick="setScale(50)">50人規模</button>
+        <button class="tab-btn" onclick="setScale(100)">100人規模</button>
     </div>
 </div>
 
@@ -65,9 +67,11 @@
     </div>
 </div>
 
-<div id="right-zone" class="side-zone">
+<div class="side-zone">
     <div class="side-tabs right-tabs">
-        <button class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
+        <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
+        <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
+        <button class="tab-btn" onclick="togglePIP()">子母畫面</button>
         <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
         <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c30088;">LINE</button>
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f488;">CHAT</button>
@@ -79,11 +83,14 @@
 </div>
 
 <script>
+    let mediaRecorder, chunks = [];
+
     async function startVideo() {
         const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        window.lStream = s;
         document.getElementById('commander-pip').srcObject = s;
         document.getElementById('main-display').srcObject = s;
-        addLog("🎥 指揮中樞已就緒 [cite: 2026-01-07]");
+        addLog("🎥 系統已就緒 [cite: 2026-01-07]");
     }
 
     function setScale(num) {
@@ -94,17 +101,36 @@
         for (let i = 1; i <= num; i++) {
             const dot = document.createElement('div');
             dot.className = 'unit-dot';
-            dot.style.padding = (num <= 20) ? '12px 0' : '4px 0';
             dot.innerText = (num <= 20) ? `OP-${i}` : `${i}`;
             container.appendChild(dot);
         }
-        addLog(`📊 規模：${num} UNIT 鎖定 [cite: 2026-01-27]`);
+        addLog(`📊 規模：${num} UNIT [cite: 2026-01-27]`);
     }
 
     async function toggleShare() {
         const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
         document.getElementById('main-display').srcObject = s;
-        addLog("🖥️ 內容廣播同步中 [cite: 2026-01-27]");
+        addLog("🖥️ 視窗同步中 [cite: 2026-01-27]");
+    }
+
+    function toggleRec() {
+        const b = document.getElementById('rec-btn');
+        if (b.classList.toggle('active-red')) {
+            chunks = []; mediaRecorder = new MediaRecorder(window.lStream);
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/mp4' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = `V_LOG_${Date.now()}.mp4`; a.click();
+            };
+            mediaRecorder.start(); b.innerText = "錄製中"; addLog("💾 紀錄中");
+        } else { mediaRecorder.stop(); b.innerText = "錄影存檔"; addLog("✅ 已存檔"); }
+    }
+
+    function toggleBC() {
+        const b = document.getElementById('bc-btn');
+        if (b.classList.toggle('active-red')) { b.innerText = "廣播中"; addLog("🔴 啟動廣播"); }
+        else { b.innerText = "廣播指令"; addLog("🟢 結束廣播"); }
     }
 
     function addLog(txt) {

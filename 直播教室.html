@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>V-Commander | 直播教室</title>
+    <style>
+        :root { --soft-gold: #e5c07b; --bg-dark: #000; }
+        body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; z-index: 10; }
+        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
+
+        /* 字尺寸以黃金比例 18-20 為主 [cite: 2026-01-22] */
+        .tab-btn { 
+            width: 38px; flex-grow: 1; max-height: 90px; margin: 2px 0;
+            border: 1px solid #1a1a1a; background: #080808;
+            cursor: pointer; writing-mode: vertical-lr; text-align: center; 
+            white-space: nowrap; opacity: 0.8; transition: 0.3s; font-size: 14px; 
+            color: var(--soft-gold); letter-spacing: 2px;
+        }
+        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; }
+        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; }
+
+        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; }
+        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #050505; }
+        #main-display { width: 100%; height: 100%; object-fit: contain; }
+        #commander-pip { position: absolute; top: 15px; right: 15px; width: 180px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        
+        #status-log { flex-grow: 1; font-size: 13px; color: #666; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
+        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; font-weight: bold; }
+    </style>
+</head>
+<body onload="autoInit()">
+
+<div class="side-zone" style="width: 180px;">
+    <div style="flex-grow:1;">
+        <div class="side-title">MONITOR POOL</div>
+        <div id="matrix-container" style="padding:10px;"></div>
+    </div>
+</div>
+
+<div id="center-stage">
+    <div class="video-container">
+        <video id="main-display" autoplay playsinline></video>
+        <video id="commander-pip" autoplay playsinline muted></video>
+    </div>
+</div>
+
+<div class="side-zone" style="width: 280px;">
+    <div class="side-tabs">
+        <button class="tab-btn" onclick="window.location.href='index.html'" style="color: #ff9800;">回主畫面</button>
+        <button id="live-btn" class="tab-btn" onclick="toggleLive()">建立教室</button>
+        <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
+        <button class="tab-btn" onclick="window.open('https://line.me/')" style="color:#00c300;">LINE</button>
+    </div>
+    <div style="flex-grow:1; display: flex; flex-direction: column;">
+        <div class="side-title">直播日誌</div>
+        <div id="status-log"></div>
+    </div>
+</div>
+
+<script>
+    let cameraStream = null;
+
+    async function autoInit() {
+        try {
+            // 直接請求權限，不再透過按鈕遮罩
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('main-display').srcObject = cameraStream;
+            document.getElementById('commander-pip').srcObject = cameraStream;
+            addLog("🎥 系統已自動連線鏡頭 [2026-01-27]"); [cite: 2026-01-07]
+        } catch (e) {
+            addLog("⚠️ 請點擊瀏覽器上方「允許使用相機」以顯示畫面");
+        }
+    }
+
+    function toggleLive() {
+        const btn = document.getElementById('live-btn');
+        const roomID = "V-Studio-" + Math.floor(Math.random()*900);
+        const meetUrl = `https://meet.jit.si/${roomID}`;
+        
+        if (btn.classList.toggle('active-blue')) {
+            btn.innerText = "直播中...";
+            addLog(`📡 直播教室已建立：${roomID}`); [cite: 2026-01-07]
+            addLog(`🔗 學生入口：${meetUrl}`); [cite: 2026-01-07]
+            window.open(meetUrl, '_blank');
+        } else {
+            btn.innerText = "建立教室";
+            addLog("⏹️ 直播已關閉");
+        }
+    }
+
+    async function toggleShare() {
+        try {
+            const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            document.getElementById('main-display').srcObject = shareStream;
+            addLog("🖥️ 正在分享教材視窗"); [cite: 2026-01-07]
+        } catch (e) { addLog("⚠️ 分享取消"); }
+    }
+
+    function addLog(txt) {
+        const log = document.getElementById('status-log');
+        const entry = document.createElement('div');
+        entry.style.borderBottom = "1px solid #111";
+        entry.innerHTML = `<span style="color:#222;">${new Date().toLocaleTimeString()}</span> ${txt}`;
+        log.prepend(entry);
+    }
+</script>
+</body>
+</html>

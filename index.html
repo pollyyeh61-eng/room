@@ -2,51 +2,61 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander 實時戰情室 | 最終佈置校正版</title>
+    <title>V-Commander 實時戰情室 | 穩定指挥版</title>
     <style>
-        :root { --side-width: 180px; --soft-gold: #e5c07b; --bg-dark: #000000; }
+        :root { 
+            --side-width: 180px; 
+            --soft-gold: #e5c07b; 
+            --bg-dark: #000000;
+        }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* 左側動態池：監控對方專區 */
-        #left-pool { 
-            width: var(--side-width); background: #050505; border-right: 1px solid #1a1a1a; 
-            display: flex; flex-direction: column; align-items: center; flex-shrink: 0; 
+        /* 左右絕對對稱設定 */
+        #left-pool, #right-log-zone { 
+            width: var(--side-width); background: #050505; 
+            border: 1px solid #1a1a1a; display: flex; flex-direction: column; flex-shrink: 0; 
         }
+        .side-title { padding: 12px 15px; border-bottom: 1px solid #151515; color: #444; font-size: 11px; letter-spacing: 2px; font-weight: bold; }
+
+        /* 監控代表框 [cite: 2026-01-27] */
         .monitor-frame {
-            width: 150px; aspect-ratio: 9 / 16; border: 1px solid #222; background: #000;
-            margin: 20px 0; position: relative; overflow: hidden;
+            width: 150px; aspect-ratio: 9/16; border: 1px solid #222; background: #000;
+            margin: 20px auto; position: relative; overflow: hidden;
         }
-        #opponent-video { width: 100%; height: 100%; object-fit: contain; } /* 這裡放對方的 LINE [cite: 2026-01-27] */
+        .monitor-active { border-color: var(--soft-gold); box-shadow: 0 0 10px rgba(229, 192, 123, 0.3); }
+        #opponent-video { width: 100%; height: 100%; object-fit: contain; display: none; }
         .frame-label { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7); color: var(--soft-gold); font-size: 9px; text-align: center; }
 
-        /* 中央戰情舞台：放您的簡報 */
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; background: #000; }
+        /* 中央戰情舞台 */
+        #center-stage { flex-grow: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
         #my-video-stage { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 15px; position: relative; }
         .video-container { width: 100%; aspect-ratio: 16 / 10; position: relative; border: 1px solid #1a1a1a; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
         
-        /* 指揮官小窗：維持在主畫面上 */
+        /* 指揮官小窗 */
         #commander-pip { 
             position: absolute; top: 15px; right: 15px; width: 140px; aspect-ratio: 1/1; 
             border: 1px solid var(--soft-gold); object-fit: cover; transform: scaleX(-1); z-index: 100;
         }
 
-        /* 側標按鍵：淡金色微刻 [cite: 2026-01-22, 2026-01-27] */
+        /* 側標：淡金微刻文字 [cite: 2026-01-22, 2026-01-27] */
+        #side-tabs { width: 40px; background: #050505; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; padding: 10px 0; gap: 8px; align-items: center; }
         .tab-btn { 
-            width: 28px; min-height: 75px; color: var(--soft-gold); font-size: 10px; 
-            writing-mode: vertical-lr; text-align: center; letter-spacing: 5px; opacity: 0.8; cursor: pointer;
-            background: #0a0a0a; border: 1px solid #222; margin-bottom: 8px;
+            width: 28px; min-height: 75px; border: 1px solid #222; background: #0a0a0a;
+            cursor: pointer; font-size: 10px; color: var(--soft-gold); writing-mode: vertical-lr; 
+            text-align: center; letter-spacing: 5px; transition: 0.4s; opacity: 0.8;
         }
-        #side-tabs { width: 40px; background: #050505; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; padding-top: 10px; }
-        
-        #right-log-zone { width: var(--side-width); background: #050505; border-left: 1px solid #1a1a1a; flex-shrink: 0; }
-        #status-log { padding: 15px; font-size: 11px; color: #333; height: 100%; overflow-y: auto; display: flex; flex-direction: column-reverse; }
+        .tab-btn:hover { opacity: 1; color: #fff; border-color: var(--soft-gold); }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
+
+        #status-log { flex-grow: 1; font-size: 11px; color: #333; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
+        .banner { position: absolute; top: 15px; left: 15px; color: #ff4d4d; font-size: 10px; display: none; z-index: 50; border-left: 1px solid #ff4d4d; padding-left: 8px; }
     </style>
 </head>
 <body onload="startVideo()">
 
 <div id="left-pool">
-    <div style="padding:12px; font-size:11px; color:#444; font-weight:bold;">動態監控池</div>
+    <div class="side-title">動態監控池</div>
     <div id="pool-frame" class="monitor-frame">
         <video id="opponent-video" autoplay playsinline></video>
         <div class="frame-label">EXT-MONITOR // 01</div>
@@ -56,6 +66,7 @@
 <div id="center-stage">
     <div id="my-video-stage">
         <div class="video-container">
+            <div id="onair-label" class="banner">COMMS ON AIR // 廣播中</div>
             <video id="main-display" autoplay playsinline></video>
             <video id="commander-pip" autoplay playsinline muted></video>
         </div>
@@ -66,38 +77,80 @@
 </div>
 
 <div id="side-tabs">
-    <button class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
+    <button id="rec-btn" class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
+    <button id="broadcast-btn" class="tab-btn" onclick="toggleBroadcast()">廣播指令</button>
     <button class="tab-btn" onclick="startPIPMode()">子母畫面</button>
+    <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
     <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c30088;">LINE</button>
+    <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f488;">CHAT</button>
 </div>
 
 <div id="right-log-zone">
+    <div class="side-title">戰情日誌</div>
     <div id="status-log"></div>
 </div>
 
 <script>
+    let mediaRecorder, recordedChunks = [];
+
     async function startVideo() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         window.localStream = stream;
         document.getElementById('commander-pip').srcObject = stream;
-        document.getElementById('main-display').srcObject = stream;
+        const mainV = document.getElementById('main-display');
+        mainV.srcObject = stream; mainV.style.transform = "scaleX(-1)";
         addLog("🎥 系統就緒：指揮官已進入位點 [cite: 2026-01-07]");
     }
 
     async function startPIPMode() {
         try {
-            // 1. 引導選擇「對方的內容」(LINE) 放入左側監控池 [cite: 2026-01-27]
-            addLog("📡 請選擇要監控的外包商視窗 (LINE)...");
+            addLog("📡 步驟 1: 請選擇外包商視窗 (LINE)...");
             const opponentStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('opponent-video').srcObject = opponentStream;
+            document.getElementById('opponent-video').style.display = "block";
+            document.getElementById('pool-frame').classList.add('monitor-active');
+
+            addLog("🖥️ 步驟 2: 請選擇您的簡報視窗 (PPT)...");
+            const presentation = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const mainV = document.getElementById('main-display');
+            mainV.srcObject = presentation; mainV.style.transform = "none";
             
-            // 2. 引導選擇「您的內容」(PPT) 放入中央主畫面 [cite: 2026-01-27]
-            addLog("🖥️ 請選擇您的簡報視窗 (PPT)...");
-            const myPresentation = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            document.getElementById('main-display').srcObject = myPresentation;
-            
-            addLog("🔴 戰略佈置完成：對左監控，對中指揮 [cite: 2026-01-27]");
-        } catch (err) { addLog("ℹ️ 指令重設"); }
+            addLog("🔴 佈署完成：對左監控，對中指挥 [cite: 2026-01-27]");
+        } catch (err) { addLog("ℹ️ 指令撤回"); }
+    }
+
+    async function toggleShare() {
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            const mainV = document.getElementById('main-display');
+            mainV.srcObject = stream; mainV.style.transform = "none";
+            addLog("🖥️ 主畫面已切換至分享視窗 [cite: 2026-01-27]");
+        } catch (err) { addLog("ℹ️ 取消分享"); }
+    }
+
+    function toggleRecording() {
+        const btn = document.getElementById('rec-btn');
+        if (btn.classList.toggle('active-red')) {
+            recordedChunks = []; mediaRecorder = new MediaRecorder(window.localStream);
+            mediaRecorder.ondataavailable = (e) => recordedChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+                const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                a.download = `V_LOG_${Date.now()}.mp4`; a.click();
+            };
+            mediaRecorder.start(); btn.innerText = "錄製中"; addLog("💾 戰情紀錄啟動");
+        } else {
+            mediaRecorder.stop(); btn.innerText = "錄影存檔"; addLog("✅ 檔案輸出完畢");
+        }
+    }
+
+    function toggleBroadcast() {
+        const btn = document.getElementById('broadcast-btn'), banner = document.getElementById('onair-label');
+        if (btn.classList.toggle('active-gold')) {
+            banner.style.display = "block"; btn.innerText = "廣播中"; addLog("🔴 啟動廣播模式 [cite: 2026-01-07]");
+        } else {
+            banner.style.display = "none"; btn.innerText = "廣播指令"; addLog("🟢 廣播結束");
+        }
     }
 
     function addLog(text) {

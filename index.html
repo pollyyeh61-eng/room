@@ -2,28 +2,34 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 大字對稱指揮版</title>
+    <title>V-Commander | 單排大字對稱版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* 側邊 180px 容器 */
+        /* 側邊容器 180px */
         .side-zone { width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
 
-        /* 直式按鍵欄：緊貼中央、字體放大、置底平均分佈 [cite: 2026-01-27] */
+        /* [關鍵校準] 直式按鍵欄：增加寬度以防止大字折行 */
         .side-tabs { 
-            width: 48px; background: #080808; display: flex; flex-direction: column; 
-            padding: 15px 0; justify-content: space-between; align-items: center; 
+            width: 52px; background: #080808; display: flex; flex-direction: column; 
+            padding: 10px 0; justify-content: space-between; align-items: center; 
         }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 大字淡金微刻按鍵 [cite: 2026-01-22, 2026-01-27] */
+        /* [關鍵校準] 字體與寬度：確保文字單排排列 [cite: 2026-01-22] */
         .tab-btn { 
-            width: 38px; flex-grow: 1; max-height: 120px; margin: 2px 0;
+            width: 42px; flex-grow: 1; max-height: 120px; margin: 2px 0;
             border: 1px solid #222; background: #0a0a0a;
-            cursor: pointer; font-size: 14px; color: var(--soft-gold); writing-mode: vertical-lr; 
-            text-align: center; letter-spacing: 4px; opacity: 0.8; transition: 0.3s;
+            cursor: pointer; 
+            font-size: 16px; /* 依照偏好調大 */
+            color: var(--soft-gold); 
+            writing-mode: vertical-lr; 
+            text-align: center; 
+            letter-spacing: 2px; /* 縮小字距防止折行 */
+            white-space: nowrap; /* 強制不換行 */
+            opacity: 0.8; transition: 0.3s;
             font-weight: bold;
         }
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; }
@@ -31,11 +37,10 @@
 
         /* 內容區 */
         .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: var(--soft-gold); font-size: 13px; letter-spacing: 2px; font-weight: bold; }
+        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: var(--soft-gold); font-size: 14px; letter-spacing: 2px; font-weight: bold; }
         
         #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
         .unit-dot { border: 1px solid #222; background: #0a0a0a; color: #666; text-align: center; font-size: 12px; padding: 6px 0; }
-        .active-sig { border-color: #00ff00 !important; color: #00ff00 !important; }
 
         /* 中央舞台 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 2px solid #111; border-right: 2px solid #111; }
@@ -93,7 +98,6 @@
         window.lStream = s;
         document.getElementById('commander-pip').srcObject = s;
         document.getElementById('main-display').srcObject = s;
-        addLog("🎥 系統就緒：大字體模式已啟動");
     }
 
     function setScale(num) {
@@ -113,7 +117,7 @@
     async function toggleShare() {
         const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
         document.getElementById('main-display').srcObject = s;
-        addLog("🖥️ 視窗分享進行中");
+        addLog("🖥️ 視窗分享中");
     }
 
     function toggleRec() {

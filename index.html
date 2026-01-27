@@ -2,59 +2,63 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 矩陣指揮官</title>
+    <title>V-Commander | 左右對稱直排版</title>
     <style>
         :root { --side-width: 180px; --soft-gold: #e5c07b; --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
 
-        /* 左右 180px 對稱佈局 */
-        #left-pool, #right-log-zone { 
+        /* 180px 絕對對稱容器 */
+        #left-zone, #right-log-zone { 
             width: var(--side-width); background: #050505; border: 1px solid #1a1a1a; 
-            display: flex; flex-direction: column; flex-shrink: 0; 
+            display: flex; height: 100%; flex-shrink: 0; 
         }
-        .side-title { padding: 12px 15px; border-bottom: 1px solid #151515; color: #444; font-size: 11px; letter-spacing: 2px; font-weight: bold; }
 
-        /* 左側矩陣與切換鍵 [cite: 2026-01-27] */
-        #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { width: 100%; border: 1px solid #222; background: #0a0a0a; color: #444; text-align: center; font-size: 9px; transition: 0.3s; }
-        .active { border-color: #00ff00 !important; color: #00ff00 !important; box-shadow: 0 0 8px rgba(0,255,0,0.3); }
-        
-        #scale-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 5px; border-top: 1px solid #151515; }
-        .scale-btn { 
-            background: #000; border: 1px solid #222; color: var(--soft-gold); 
-            font-size: 9px; padding: 5px 0; cursor: pointer; opacity: 0.7; 
+        /* 側邊標籤欄專用 (左與右) [cite: 2026-01-27] */
+        .side-tabs { 
+            width: 42px; background: #080808; border-right: 1px solid #151515; 
+            display: flex; flex-direction: column; padding: 10px 0; gap: 5px; align-items: center; 
         }
-        .scale-btn:hover { opacity: 1; border-color: var(--soft-gold); }
+        #right-tabs { border-right: none; border-left: 1px solid #151515; }
+
+        /* 直式按鍵樣式 [cite: 2026-01-22, 2026-01-27] */
+        .tab-btn { 
+            width: 30px; min-height: 65px; border: 1px solid #222; background: #0a0a0a;
+            cursor: pointer; font-size: 9px; color: var(--soft-gold); writing-mode: vertical-lr; 
+            text-align: center; letter-spacing: 3px; opacity: 0.8; transition: 0.3s;
+        }
+        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; }
+        .active-mode { border-color: #00ff00 !important; color: #00ff00 !important; }
+
+        /* 動態池與日誌內容區 [cite: 2026-01-27] */
+        .side-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .side-title { padding: 12px 15px; border-bottom: 1px solid #151515; color: #444; font-size: 11px; letter-spacing: 2px; font-weight: bold; }
+        
+        #matrix-container { flex-grow: 1; display: grid; gap: 4px; padding: 10px; overflow-y: auto; align-content: start; }
+        .unit-dot { border: 1px solid #222; background: #0a0a0a; color: #444; text-align: center; font-size: 9px; }
+        .active { border-color: #00ff00 !important; color: #00ff00 !important; box-shadow: 0 0 8px rgba(0,255,0,0.3); }
 
         /* 中央舞台與指揮官位 */
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; }
         .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #1a1a1a; position: relative; }
         #main-display { width: 100%; height: 100%; object-fit: contain; }
         #commander-pip { position: absolute; top: 15px; right: 15px; width: 140px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
-
-        /* 右側標：核心功能 [cite: 2026-01-27] */
-        #side-tabs { width: 42px; background: #050505; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; padding: 10px 0; gap: 6px; align-items: center; }
-        .tab-btn { 
-            width: 30px; min-height: 75px; border: 1px solid #222; background: #0a0a0a;
-            cursor: pointer; font-size: 10px; color: var(--soft-gold); writing-mode: vertical-lr; 
-            text-align: center; letter-spacing: 4px; opacity: 0.8;
-        }
 
         #status-log { flex-grow: 1; font-size: 11px; color: #333; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
     </style>
 </head>
 <body onload="startVideo(); setScale(10);">
 
-<div id="left-pool">
-    <div class="side-title" id="mon-title">MONITOR POOL</div>
-    <div id="matrix-container"></div>
-    <div id="scale-selector">
-        <button class="scale-btn" onclick="setScale(10)">-10</button>
-        <button class="scale-btn" onclick="setScale(20)">-20</button>
-        <button class="scale-btn" onclick="setScale(30)">-30</button>
-        <button class="scale-btn" onclick="setScale(40)">-40</button>
-        <button class="scale-btn" onclick="setScale(50)">-50</button>
-        <button class="scale-btn" onclick="setScale(100)">-100</button>
+<div id="left-zone">
+    <div class="side-tabs">
+        <button class="tab-btn" onclick="setScale(10)">10人模式</button>
+        <button class="tab-btn" onclick="setScale(20)">20人模式</button>
+        <button class="tab-btn" onclick="setScale(30)">30人模式</button>
+        <button class="tab-btn" onclick="setScale(50)">50人模式</button>
+        <button class="tab-btn" onclick="setScale(100)">100人模式</button>
+    </div>
+    <div class="side-content">
+        <div class="side-title">MONITOR POOL</div>
+        <div id="matrix-container"></div>
     </div>
 </div>
 
@@ -65,16 +69,17 @@
     </div>
 </div>
 
-<div id="side-tabs">
-    <button class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
-    <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
-    <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c30088;">LINE</button>
-    <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f488;">CHAT</button>
-</div>
-
 <div id="right-log-zone">
-    <div class="side-title">戰情日誌</div>
-    <div id="status-log"></div>
+    <div class="side-content">
+        <div class="side-title">戰情日誌</div>
+        <div id="status-log"></div>
+    </div>
+    <div id="right-tabs" class="side-tabs">
+        <button class="tab-btn" onclick="toggleRecording()">錄影存檔</button>
+        <button class="tab-btn" onclick="toggleShare()">分享視窗</button>
+        <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c30088;">LINE</button>
+        <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f488;">CHAT</button>
+    </div>
 </div>
 
 <script>
@@ -82,32 +87,29 @@
         const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         document.getElementById('commander-pip').srcObject = s;
         document.getElementById('main-display').srcObject = s;
-        addLog("🎥 指揮官位點就緒 [cite: 2026-01-07]");
+        addLog("🎥 戰略室系統連線中 [cite: 2026-01-07]");
     }
 
     function setScale(num) {
         const container = document.getElementById('matrix-container');
         container.innerHTML = '';
-        
-        // 矩陣排列邏輯：10/20人一列, 30/40/50人四列, 100人八列 [cite: 2026-01-27]
         let cols = (num <= 20) ? 1 : (num <= 50 ? 4 : 8);
         container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
         for (let i = 1; i <= num; i++) {
             const dot = document.createElement('div');
             dot.className = 'unit-dot';
-            dot.id = `u-${i}`;
             dot.style.padding = (num <= 20) ? '12px 0' : '4px 0';
             dot.innerText = (num <= 20) ? `OP-${i}` : `${i}`;
             container.appendChild(dot);
         }
-        addLog(`📊 規模校準：${num} 人單位 [cite: 2026-01-27]`);
+        addLog(`📊 規模：${num} 人單位鎖定 [cite: 2026-01-27]`);
     }
 
     async function toggleShare() {
         const s = await navigator.mediaDevices.getDisplayMedia({ video: true });
         document.getElementById('main-display').srcObject = s;
-        addLog("🖥️ 內容廣播中 [cite: 2026-01-27]");
+        addLog("🖥️ 視窗同步啟動 [cite: 2026-01-27]");
     }
 
     function addLog(txt) {

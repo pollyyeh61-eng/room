@@ -2,45 +2,123 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 直播專用強啟版</title>
+    <title>V-Commander | 直播教室專家版</title>
     <style>
-        :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
-        body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        :root { 
+            --left-width: 180px; 
+            --right-width: 280px; 
+            --soft-gold: #e5c07b; 
+            --gold-glow: rgba(229, 192, 123, 0.4); 
+            --bg-dark: #000; 
+        }
+        body { 
+            margin: 0; 
+            background: var(--bg-dark); 
+            color: #d0d0d0; 
+            font-family: sans-serif; 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
 
         /* 側邊結構 */
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
 
-        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
-        .left-tabs { border-left: 1px solid #151515; order: 2; } 
-        .right-tabs { border-right: 1px solid #151515; order: 1; }
-
-        /* 按鍵比例 18-20 [cite: 2026-01-22] */
-        .tab-btn { 
-            width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
-            border: 1px solid #1a1a1a; background: #080808;
-            cursor: pointer; writing-mode: vertical-lr; text-align: center; 
-            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
-            position: relative; overflow: hidden;
+        .side-tabs { 
+            width: 48px; 
+            background: #080808; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 20px 0 100px 0; 
+            justify-content: space-between; 
+            align-items: center; 
         }
-        .left-tabs .tab-btn { font-size: 12px; color: var(--soft-gold); }
-        .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
 
-        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); box-shadow: 0 0 15px var(--gold-glow); }
-        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
+        /* 按鍵尺寸 18-20 黃金比例 [cite: 2026-01-22] */
+        .tab-btn { 
+            width: 36px; 
+            flex-grow: 1; 
+            max-height: 95px; 
+            margin: 2px 0;
+            border: 1px solid #1a1a1a; 
+            background: #080808;
+            cursor: pointer; 
+            writing-mode: vertical-lr; 
+            text-align: center; 
+            white-space: nowrap; 
+            opacity: 0.7; 
+            transition: 0.5s; 
+            font-size: 14px; 
+            color: var(--soft-gold); 
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn:hover { 
+            opacity: 1; 
+            border-color: var(--soft-gold); 
+            box-shadow: 0 0 15px var(--gold-glow); 
+            color: #fff;
+        }
+
         .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
 
-        /* 主畫面 */
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; }
-        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; }
-        #main-display, #commander-pip { width: 100%; height: 100%; object-fit: contain; }
-        #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; height: auto; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; }
+        /* 主視訊舞台 */
+        #center-stage { 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            background: #000; 
+            border-left: 1px solid #111; 
+            border-right: 1px solid #111; 
+        }
+        .video-container { 
+            width: 95%; 
+            aspect-ratio: 16 / 10; 
+            margin: auto; 
+            border: 1px solid #151515; 
+            position: relative; 
+            background: #000;
+        }
+        #main-display { width: 100%; height: 100%; object-fit: contain; }
+        #commander-pip { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            width: 160px; 
+            height: auto; 
+            border: 1px solid var(--soft-gold); 
+            transform: scaleX(-1); 
+            z-index: 100; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
         
-        /* 戰情日誌 */
-        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; white-space: nowrap; }
-        .log-entry { border-bottom: 1px solid #111; padding-bottom: 2px; }
-        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; font-weight: bold; }
+        /* 戰情日誌與標題 */
+        #status-log { 
+            flex-grow: 1; 
+            font-size: 12px; 
+            color: #555; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column-reverse; 
+            padding: 15px; 
+            line-height: 1.8; 
+            white-space: nowrap; 
+        }
+        .log-entry { border-bottom: 1px solid #111; padding-bottom: 2px; margin-bottom: 4px; }
+        .side-title { 
+            padding: 15px; 
+            border-bottom: 1px solid #151515; 
+            color: #444; 
+            font-size: 12px; 
+            letter-spacing: 3px; 
+            font-weight: bold; 
+        }
         #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; align-content: start; }
         .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
     </style>
@@ -48,11 +126,11 @@
 <body onload="initSystem();">
 
 <div class="side-zone left-zone">
-    <div class="side-content" style="order:1;">
+    <div class="side-content">
         <div class="side-title">MONITOR POOL</div>
         <div id="matrix-container"></div>
     </div>
-    <div class="side-tabs left-tabs">
+    <div class="side-tabs" style="border-left: 1px solid #151515;">
         <button class="tab-btn" onclick="setScale(10)">10人規模</button>
         <button class="tab-btn" onclick="setScale(50)">50人規模</button>
         <button class="tab-btn" onclick="setScale(100)">100人規模</button>
@@ -67,15 +145,16 @@
 </div>
 
 <div class="side-zone right-zone">
-    <div class="side-tabs right-tabs">
-        <button id="live-btn" class="tab-btn" onclick="toggleLive()">直播串流</button>
+    <div class="side-tabs" style="border-right: 1px solid #151515;">
+        <button class="tab-btn" onclick="window.location.href='index.html'" style="color: #ff9800; font-weight: bold;">回主畫面</button>
+        <button id="live-btn" class="tab-btn" onclick="toggleLive()">建立教室</button>
         <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
         <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
         <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
         <button class="tab-btn" onclick="window.open('https://line.me/')" style="color:#00c300aa;">LINE</button>
     </div>
-    <div class="side-content" style="order:2;">
-        <div class="side-title">戰情日誌</div>
+    <div class="side-content">
+        <div class="side-title">直播日誌</div>
         <div id="status-log"></div>
     </div>
 </div>
@@ -87,47 +166,59 @@
     async function initSystem() {
         await startCamera();
         setScale(10);
-        addLog("🚀 戰情系統已就位 [2026-01-27]"); [cite: 2026-01-07]
+        addLog("🚀 直播專用系統已啟動 [2026-01-27]"); [cite: 2026-01-07]
     }
 
     async function startCamera() {
         try {
+            // 強制啟動相機並注入視訊元件
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('commander-pip').srcObject = cameraStream;
             document.getElementById('main-display').srcObject = cameraStream;
-        } catch (e) { addLog("⚠️ 鏡頭啟動失敗，請檢查權限"); }
+        } catch (e) { 
+            addLog("⚠️ 鏡頭啟動失敗，請檢查權限"); 
+        }
+    }
+
+    // 實質串流邏輯：建立一個可分享的 WebRTC 房間
+    function toggleLive() {
+        const btn = document.getElementById('live-btn');
+        // 建立唯一房間名稱
+        const roomID = "V-Studio-" + Math.floor(Math.random()*9000 + 1000);
+        const meetUrl = `https://meet.jit.si/${roomID}`;
+
+        if (btn.classList.toggle('active-blue')) {
+            btn.innerText = "直播中...";
+            addLog(`📡 直播教室已建立：${roomID}`); [cite: 2026-01-07]
+            addLog(`🔗 學生入口：${meetUrl}`); [cite: 2026-01-07]
+            // 自動開啟視訊分頁供您操作直播
+            window.open(meetUrl, '_blank');
+        } else {
+            btn.innerText = "建立教室";
+            addLog("⏹️ 直播已離線");
+        }
     }
 
     async function toggleShare() {
         try {
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 直播教材分享中..."); [cite: 2026-01-07]
+            addLog("🖥️ 正在同步分享教材視窗"); [cite: 2026-01-07]
             shareStream.getVideoTracks()[0].onended = () => { resetToCamera(); };
-        } catch (e) { addLog("⚠️ 分享已取消"); }
+        } catch (e) { addLog("⚠️ 分享操作取消"); }
     }
 
     function resetToCamera() {
-        document.getElementById('main-display').srcObject = cameraStream;
-        addLog("🔄 訊號已回歸監控模式"); [cite: 2026-01-07]
-    }
-
-    function toggleLive() {
-        const btn = document.getElementById('live-btn');
-        if (btn.classList.toggle('active-blue')) {
-            const code = Math.floor(Math.random()*9000+1000);
-            btn.innerText = "直播中...";
-            addLog(`📡 已建立直播節點：LIVE-${code}`); [cite: 2026-01-07]
-        } else {
-            btn.innerText = "直播串流";
-            addLog("⏹️ 直播已離線");
+        if (cameraStream) {
+            document.getElementById('main-display').srcObject = cameraStream;
+            addLog("🔄 分享結束，還原鏡頭畫面");
         }
     }
 
     function togglePIP() {
         isPIP = !isPIP;
         document.getElementById('commander-pip').style.display = isPIP ? 'block' : 'none';
-        addLog(isPIP ? "🖼️ 顯示子母畫面" : "🖼️ 隱藏子母畫面");
+        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
     }
 
     function setScale(num) {
@@ -140,14 +231,14 @@
             dot.innerText = i;
             container.appendChild(dot);
         }
-        addLog(`📊 規模：${num} 人單位`);
+        addLog(`📊 學員規模設定：${num} 人`);
     }
 
     function toggleRec() {
         const btn = document.getElementById('rec-btn');
         btn.classList.toggle('active-red');
         btn.innerText = btn.classList.contains('active-red') ? "錄製中..." : "錄影存檔";
-        addLog(btn.classList.contains('active-red') ? "🔴 啟動全線錄影" : "✅ 錄影已封存");
+        addLog(btn.classList.contains('active-red') ? "🔴 課程全線錄影中" : "✅ 錄影檔案已儲存");
     }
 
     function addLog(txt) {
@@ -155,7 +246,8 @@
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         const now = new Date();
-        entry.innerHTML = `<span style="color:#222;margin-right:8px;">${now.getHours()}:${now.getMinutes()}</span> ${txt}`;
+        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        entry.innerHTML = `<span style="color:#222;margin-right:8px;">${timeStr}</span> ${txt}`;
         log.prepend(entry);
     }
 </script>

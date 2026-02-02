@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 戰情直播全功能版</title>
+    <title>V-Commander | 戰情直播長效版</title>
     <style>
         :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
@@ -15,7 +15,6 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 黃金比例按鍵設定 */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
             border: 1px solid #1a1a1a; background: #080808;
@@ -42,7 +41,6 @@
         
         #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
         
-        /* 統帥子母畫面 */
         #commander-pip { 
             position: absolute; top: 15px; right: 15px; width: 180px; 
             border: 1px solid var(--soft-gold); transform: scaleX(-1); 
@@ -105,8 +103,9 @@
     let isPIP = true;
     let cameraStream = null;
     let isLive = false;
-const roomName = "葉老師線上免費課程";
-const jitsiUrl = `https://8x8.vc/vpaas-magic-cookie-8692797e8e1944888805f7786968725f/${encodeURIComponent(roomName)}`;
+    
+    // 長效固定網址設定
+    const longTermUrl = "https://8x8.vc/vpaas-magic-cookie-8692797e8e1944888805f7786968725f/葉老師長期戰情室";
 
     async function startVideo() {
         try {
@@ -122,31 +121,27 @@ const jitsiUrl = `https://8x8.vc/vpaas-magic-cookie-8692797e8e1944888805f7786968
     function toggleLiveMode() {
         const btn = document.getElementById('live-btn');
         const wrapper = document.getElementById('video-wrapper');
-        
         isLive = !isLive;
 
         if (isLive) {
             btn.classList.add('active-blue');
             btn.innerText = "直播進行中";
-            addLog(`📡 直播模式啟動：${roomName}`);
+            addLog("📡 長效直播模式啟動 [8x8 Node]");
             
-            // 嵌入 Jitsi 畫面
             wrapper.innerHTML = `
-                <iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${jitsiUrl}"></iframe>
+                <iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe>
                 <video id="commander-pip" autoplay playsinline muted></video>
             `;
             
-            // 恢復右上角小鏡頭
             setTimeout(() => {
                 const pip = document.getElementById('commander-pip');
                 if (cameraStream) pip.srcObject = cameraStream;
             }, 1000);
-            
         } else {
             btn.classList.remove('active-blue');
             btn.innerText = "直播課程";
             addLog("⏹️ 直播結束，返回監控模式");
-            location.reload(); // 重整以恢復原始結構
+            location.reload(); 
         }
     }
 
@@ -208,4 +203,3 @@ const jitsiUrl = `https://8x8.vc/vpaas-magic-cookie-8692797e8e1944888805f7786968
 </script>
 </body>
 </html>
-

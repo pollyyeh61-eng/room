@@ -6,7 +6,7 @@
     <style>
         :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
-
+     
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
@@ -105,8 +105,8 @@
     let isPIP = true;
     let cameraStream = null;
     let isLive = false;
-    const roomName = "葉老師線上免費課程";
-    const jitsiUrl = `https://meet.jit.si/${encodeURIComponent(roomName)}#config.startWithAudioMuted=true&config.prejoinPageEnabled=false`;
+const roomName = "葉老師線上免費課程";
+const jitsiUrl = `https://8x8.vc/vpaas-magic-cookie-8692797e8e1944888805f7786968725f/${encodeURIComponent(roomName)}`;
 
     async function startVideo() {
         try {
@@ -208,3 +208,4 @@
 </script>
 </body>
 </html>
+

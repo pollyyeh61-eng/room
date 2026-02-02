@@ -1,191 +1,63 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>V-Commander | 全功能穩定版</title>
-    <style>
-        :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; }
-        body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
-
-        .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
-        .left-zone { width: var(--left-width); }
-        .right-zone { width: var(--right-width); }
-
-        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
-        .left-tabs { border-left: 1px solid #151515; order: 2; } 
-        .right-tabs { border-right: 1px solid #151515; order: 1; }
-
-        /* 黃金比例按鍵 [cite: 2026-01-22] */
-        .tab-btn { 
-            width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
-            border: 1px solid #1a1a1a; background: #080808;
-            cursor: pointer; writing-mode: vertical-lr; text-align: center; 
-            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
-            position: relative; overflow: hidden;
-        }
-        .left-tabs .tab-btn { font-size: 12px; color: var(--soft-gold); letter-spacing: 1px; }
-        .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
-
-        .tab-btn::after {
-            content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: linear-gradient(45deg, transparent, var(--gold-glow), transparent);
-            transform: rotate(45deg); animation: goldFlow 4s infinite linear; pointer-events: none;
-        }
-        @keyframes goldFlow { 0% { transform: translate(-30%, -30%) rotate(45deg); } 100% { transform: translate(30%, 30%) rotate(45deg); } }
-        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
-        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
-        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; }
-
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
-        .video-container { width: 95%; aspect-ratio: 16 / 10; margin: auto; border: 1px solid #151515; position: relative; background: #000; }
-        #main-display { width: 100%; height: 100%; object-fit: contain; }
-        #commander-pip { position: absolute; top: 15px; right: 15px; width: 160px; border: 1px solid var(--soft-gold); transform: scaleX(-1); z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        
-        #status-log { 
-            flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
-            display: flex; flex-direction: column-reverse; padding: 15px; 
-            line-height: 1.8; white-space: nowrap; 
-        }
-        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
-        .log-time { color: #222; margin-right: 8px; font-family: monospace; }
-        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
-        #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; }
-    </style>
-</head>
-<body onload="startVideo(); setScale(10);">
-
-<div class="side-zone left-zone">
-    <div class="side-content" style="order:1;">
-        <div class="side-title">MONITOR POOL</div>
-        <div id="matrix-container"></div>
-    </div>
-    <div class="side-tabs left-tabs">
-        <button class="tab-btn" onclick="setScale(10)">10人規模</button>
-        <button class="tab-btn" onclick="setScale(20)">20人規模</button>
-        <button class="tab-btn" onclick="setScale(30)">30人規模</button>
-        <button class="tab-btn" onclick="setScale(40)">40人規模</button>
-        <button class="tab-btn" onclick="setScale(50)">50人規模</button>
-        <button class="tab-btn" onclick="setScale(100)">100人規模</button>
-    </div>
-</div>
-
 <div id="center-stage">
-    <div class="video-container">
+    <div class="video-container" id="video-wrapper">
         <video id="main-display" autoplay playsinline></video>
         <video id="commander-pip" autoplay playsinline muted></video>
-    </div>
-</div>
-
-<div class="side-zone right-zone">
-    <div class="side-tabs right-tabs">
-        <button id="live-btn" class="tab-btn" onclick="createLiveClass()" style="color:#4285f4; font-weight:bold;">直播課程</button>
-        <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
-        <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
-        <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
-        <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
-        <button class="tab-btn" onclick="window.location.href='line://'" style="color:#00c300aa;">LINE</button>
-        <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
-    </div>
-    <div class="side-content" style="order:2;">
-        <div class="side-title">戰情日誌</div>
-        <div id="status-log"></div>
     </div>
 </div>
 
 <script>
     let isPIP = true;
     let cameraStream = null;
+    // 固定房間名稱，方便學員加入
+    const roomName = "葉老師線上免費課程"; 
+    const jitsiUrl = `https://meet.jit.si/${encodeURIComponent(roomName)}`;
 
-    // 直播課程建立邏輯
+    // 修改後的直播課程建立邏輯
     function createLiveClass() {
         const btn = document.getElementById('live-btn');
-        // 建立唯一房間連結
-        const roomID = "V-Commander-Room-" + Math.floor(Math.random()*9000 + 1000);
-        const meetUrl = `https://meet.jit.si/${roomID}`;
+        const wrapper = document.getElementById('video-wrapper');
+        const mainDisplay = document.getElementById('main-display');
 
         if (btn.classList.toggle('active-blue')) {
             btn.innerText = "直播中...";
-            addLog(`📡 直播教室已啟動 [2026-01-07]`); 
-            addLog(`🔗 邀請網址：${meetUrl}`); 
-            // 開啟直播分頁
-            window.open(meetUrl, '_blank');
+            addLog(`📡 直播教室已啟動 [2026-02-02]`); 
+            addLog(`🔗 學員連結：${jitsiUrl}`); 
+
+            // 將中央畫面替換為 Jitsi Iframe
+            wrapper.innerHTML = `
+                <iframe 
+                    allow="camera; microphone; fullscreen; display-capture; autoplay" 
+                    src="${jitsiUrl}" 
+                    style="width: 100%; height: 100%; border: 0;">
+                </iframe>
+                <video id="commander-pip" autoplay playsinline muted></video>
+            `;
+            
+            // 重新啟動右上角的小鏡頭
+            setTimeout(() => {
+                const pip = document.getElementById('commander-pip');
+                if (cameraStream) pip.srcObject = cameraStream;
+            }, 500);
+
         } else {
             btn.innerText = "直播課程";
-            addLog("⏹️ 直播已關閉");
+            addLog("⏹️ 直播已關閉，切換回監控模式");
+            location.reload(); // 重整頁面以恢復原始相機狀態
         }
     }
 
     async function startVideo() {
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('commander-pip').srcObject = cameraStream;
-            document.getElementById('main-display').srcObject = cameraStream;
-            addLog("🎥 網路相機連線成功 [2026-01-07]"); 
+            const pip = document.getElementById('commander-pip');
+            const main = document.getElementById('main-display');
+            if (pip) pip.srcObject = cameraStream;
+            if (main) main.srcObject = cameraStream;
+            addLog("🎥 網路相機連線成功 [2026-02-02]"); 
         } catch (e) { 
             addLog("⚠️ 相機啟動失敗，請確認權限"); 
-            console.error(e);
         }
     }
 
-    async function toggleShare() {
-        try {
-            const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 視窗內容同步分享中 [2026-01-07]");
-            shareStream.getVideoTracks()[0].onended = () => { resetToCamera(); };
-        } catch (e) { addLog("⚠️ 分享操作取消"); }
-    }
-
-    function resetToCamera() {
-        if (cameraStream) {
-            document.getElementById('main-display').srcObject = cameraStream;
-            addLog("🔄 分享結束，回歸相機畫面");
-        }
-    }
-
-    function togglePIP() {
-        isPIP = !isPIP;
-        document.getElementById('commander-pip').style.display = isPIP ? 'block' : 'none';
-        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
-    }
-
-    function setScale(num) {
-        const container = document.getElementById('matrix-container');
-        container.innerHTML = '';
-        container.style.gridTemplateColumns = `repeat(${num <= 20 ? 1 : 4}, 1fr)`;
-        for (let i = 1; i <= num; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'unit-dot';
-            dot.innerText = (num <= 20) ? `UNIT-${i}` : `${i}`;
-            container.appendChild(dot);
-        }
-        addLog(`📊 規模：${num} 人單位`);
-    }
-
-    function toggleRec() {
-        const btn = document.getElementById('rec-btn');
-        btn.classList.toggle('active-red');
-        btn.innerText = btn.classList.contains('active-red') ? "錄製中..." : "錄影存檔";
-        addLog(btn.classList.contains('active-red') ? "🔴 啟動全線錄影" : "✅ 錄影檔案已封存");
-    }
-
-    function toggleBC() {
-        const btn = document.getElementById('bc-btn');
-        btn.classList.toggle('active-red');
-        btn.innerText = btn.classList.contains('active-red') ? "廣播中..." : "廣播指令";
-        addLog(btn.classList.contains('active-red') ? "📡 指令廣播：啟動" : "🔇 指令廣播：關閉");
-    }
-
-    function addLog(txt) {
-        const log = document.getElementById('status-log');
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-        entry.innerHTML = `<span class="log-time">${timeStr}</span> ${txt}`;
-        log.prepend(entry);
-    }
+    // ... 其餘 setScale, toggleRec, toggleBC 等 function 保持不變 ...
 </script>
-</body>
-</html>

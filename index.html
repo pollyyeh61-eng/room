@@ -7,6 +7,7 @@
         :root { --left-width: 180px; --right-width: 280px; --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); --bg-dark: #000; --online-green: #00ff88; }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
      
+        /* 側邊欄位 */
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
@@ -15,25 +16,26 @@
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 調整按鈕字體為 16px，確保視覺平衡 */
+        /* 按鍵字體精準縮至 12px */
         .tab-btn { 
             width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
             border: 1px solid #1a1a1a; background: #080808;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
-            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 400;
+            white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
-            font-size: 16px; color: var(--soft-gold); letter-spacing: 1px;
+            font-size: 12px; color: var(--soft-gold); letter-spacing: 1px;
         }
 
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
         .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; box-shadow: 0 0 15px #4285f466; }
 
+        /* 中央舞台 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
         .video-container { width: 98%; height: 95%; margin: auto; border: 1px solid #151515; position: relative; background: #000; overflow: hidden; }
         #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
         
-        /* 頭像與子母畫面縮小至 120px */
+        /* 頭像與子母畫面維持縮小尺寸 120px */
         #commander-pip, #commander-photo { 
             position: absolute; top: 15px; right: 15px; width: 120px; 
             border: 1px solid var(--soft-gold); 
@@ -111,6 +113,7 @@
         }
     }
 
+    // 整合 MediaRecorder 以解決錄影無反應問題
     async function handleRecording() {
         const btn = document.getElementById('rec-btn');
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
@@ -124,14 +127,14 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `錄影_${new Date().getTime()}.webm`;
+                    a.download = `戰情錄影_${new Date().getTime()}.webm`;
                     a.click();
-                    addLog("✅ 錄影存檔已下載");
+                    addLog("✅ 錄影存檔已導出");
                 };
                 mediaRecorder.start();
                 btn.classList.add('active-red');
                 addLog("🔴 雲端錄影啟動");
-            } catch (err) { addLog("⚠️ 錄影啟動失敗"); }
+            } catch (err) { addLog("⚠️ 錄影權限被拒絕"); }
         } else {
             mediaRecorder.stop();
             btn.classList.remove('active-red');
@@ -153,7 +156,7 @@
             photoImg.style.display = 'none';
             pipVideo.style.display = isPIP ? 'block' : 'none';
             btn.classList.remove('active-blue');
-            addLog("🎥 恢復即時相機");
+            addLog("🎥 恢復相機畫面");
         }
     }
 
@@ -163,7 +166,7 @@
         isLive = !isLive;
         if (isLive) {
             btn.classList.add('active-blue');
-            addLog("📡 進入直播室");
+            addLog("📡 進入長效直播室");
             wrapper.innerHTML = `
                 <iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe>
                 <video id="commander-pip" style="width:120px;" autoplay playsinline muted></video>
@@ -202,7 +205,7 @@
     function toggleBC() {
         const btn = document.getElementById('bc-btn');
         btn.classList.toggle('active-red');
-        addLog(btn.classList.contains('active-red') ? "📡 開啟廣播" : "🔇 關閉廣播");
+        addLog(btn.classList.contains('active-red') ? "📡 開啟全體廣播" : "🔇 關閉廣播");
     }
 
     async function toggleShare() {

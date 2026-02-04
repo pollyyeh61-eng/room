@@ -12,20 +12,20 @@
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
 
-        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
+        .side-tabs { width: 52px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 60px 0; justify-content: space-between; align-items: center; }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 黃金比例按鍵 */
+        /* 黃金比例按鍵與字體優化 */
         .tab-btn { 
-            width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
+            width: 38px; flex-grow: 1; max-height: 90px; margin: 2px 0;
             border: 1px solid #1a1a1a; background: #080808;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
             white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
-        .left-tabs .tab-btn { font-size: 12px; color: var(--soft-gold); letter-spacing: 1px; }
-        .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
+        .left-tabs .tab-btn { font-size: 13px; color: var(--soft-gold); letter-spacing: 1px; }
+        .right-tabs .tab-btn { font-size: 18px; color: var(--soft-gold); letter-spacing: 2px; }
 
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         
@@ -37,37 +37,28 @@
         .video-container { width: 98%; height: 95%; margin: auto; border: 1px solid #151515; position: relative; background: #000; overflow: hidden; }
         #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
         
+        /* 子母畫面樣式 */
         #commander-pip { 
             position: absolute; top: 15px; right: 15px; width: 180px; 
             border: 1px solid var(--soft-gold); transform: scaleX(-1); 
             z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); background: #000;
         }
+        /* 照片頭像樣式 */
+        #commander-photo { 
+            position: absolute; top: 15px; right: 15px; width: 180px; 
+            border: 1px solid var(--soft-gold); 
+            z-index: 101; display: none; /* 預設隱藏 */
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
         
-        /* 監控池動態亮燈效果 */
+        /* 監控池與日誌 */
         #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { 
-            border: 1px solid #151515; background: #070707; color: #333; text-align: center; 
-            font-size: 11px; padding: 5px 0; transition: 0.3s; position: relative;
-        }
-        .unit-dot.online { 
-            color: var(--online-green); 
-            border-color: #004422;
-            text-shadow: 0 0 5px var(--online-green);
-        }
-        .unit-dot.online::before {
-            content: ""; position: absolute; left: 4px; top: 45%; width: 4px; height: 4px;
-            background: var(--online-green); border-radius: 50%;
-            box-shadow: 0 0 8px var(--online-green);
-            animation: pulse 2s infinite;
-        }
+        .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; transition: 0.3s; position: relative; }
+        .unit-dot.online { color: var(--online-green); border-color: #004422; text-shadow: 0 0 5px var(--online-green); }
+        .unit-dot.online::before { content: ""; position: absolute; left: 4px; top: 45%; width: 4px; height: 4px; background: var(--online-green); border-radius: 50%; box-shadow: 0 0 8px var(--online-green); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
 
-        /* 日誌系統 */
-        #status-log { 
-            flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; 
-            display: flex; flex-direction: column-reverse; padding: 15px; 
-            line-height: 1.8; white-space: nowrap; 
-        }
+        #status-log { flex-grow: 1; font-size: 12px; color: #555; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; white-space: nowrap; }
         .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         .log-time { color: #333; margin-right: 8px; font-family: monospace; }
         .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #444; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
@@ -94,6 +85,7 @@
     <div class="video-container" id="video-wrapper">
         <video id="main-display" autoplay playsinline></video>
         <video id="commander-pip" autoplay playsinline muted></video>
+        <img id="commander-photo" src="3.png" alt="校長頭像">
     </div>
 </div>
 
@@ -103,6 +95,7 @@
         <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
         <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
         <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
+        <button id="photo-pip-btn" class="tab-btn" onclick="togglePhotoPIP()" style="color:var(--soft-gold); border-color:var(--soft-gold);">校長頭像</button>
         <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
         <button class="tab-btn" onclick="window.open('line://')" style="color:#00c300aa;">LINE</button>
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
@@ -115,6 +108,7 @@
 
 <script>
     let isPIP = true;
+    let isPhotoMode = false;
     let cameraStream = null;
     let isLive = false;
     
@@ -131,6 +125,33 @@
         }
     }
 
+    // 新增：切換照片頭像模式
+    function togglePhotoPIP() {
+        const photoImg = document.getElementById('commander-photo');
+        const pipVideo = document.getElementById('commander-pip');
+        const btn = document.getElementById('photo-pip-btn');
+        
+        isPhotoMode = !isPhotoMode;
+
+        if (isPhotoMode) {
+            photoImg.style.display = 'block';
+            pipVideo.style.display = 'none';
+            if (cameraStream) {
+                cameraStream.getVideoTracks().forEach(track => track.enabled = false);
+            }
+            btn.classList.add('active-blue');
+            addLog("👤 切換至照片模式 (相機關閉)");
+        } else {
+            photoImg.style.display = 'none';
+            pipVideo.style.display = isPIP ? 'block' : 'none';
+            if (cameraStream) {
+                cameraStream.getVideoTracks().forEach(track => track.enabled = true);
+            }
+            btn.classList.remove('active-blue');
+            addLog("🎥 恢復即時相機畫面");
+        }
+    }
+
     function toggleLiveMode() {
         const btn = document.getElementById('live-btn');
         const wrapper = document.getElementById('video-wrapper');
@@ -139,10 +160,15 @@
             btn.classList.add('active-blue');
             btn.innerText = "直播進行中";
             addLog("📡 進入長效直播室");
-            wrapper.innerHTML = `<iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe><video id="commander-pip" autoplay playsinline muted></video>`;
+            wrapper.innerHTML = `
+                <iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe>
+                <video id="commander-pip" autoplay playsinline muted></video>
+                <img id="commander-photo" src="3.png" style="position: absolute; top: 15px; right: 15px; width: 180px; border: 1px solid var(--soft-gold); z-index: 101; display: ${isPhotoMode ? 'block' : 'none'}; box-shadow: 0 0 20px rgba(0,0,0,0.8);">
+            `;
             setTimeout(() => {
                 const pip = document.getElementById('commander-pip');
                 if (cameraStream) pip.srcObject = cameraStream;
+                if (isPhotoMode) pip.style.display = 'none';
             }, 1000);
         } else {
             location.reload(); 
@@ -153,7 +179,7 @@
         try {
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 啟動螢幕分享模式 (請選擇視窗標籤)");
+            addLog("🖥️ 啟動螢幕分享模式");
         } catch (e) { addLog("⚠️ 取消分享"); }
     }
 
@@ -164,20 +190,17 @@
         for (let i = 1; i <= num; i++) {
             const dot = document.createElement('div');
             dot.className = 'unit-dot';
-            // 隨機模擬 80% 的人在線亮燈
-            if (Math.random() > 0.2) {
-                dot.classList.add('online');
-            }
+            if (Math.random() > 0.2) dot.classList.add('online');
             dot.innerText = (num <= 20) ? `STUDENT-${i}` : `${i}`;
             container.appendChild(dot);
         }
-        addLog(`📊 監控規模切換為 ${num} 人`);
+        addLog(`📊 監控規模：${num} 人`);
     }
 
     function togglePIP() {
         isPIP = !isPIP;
         const pip = document.getElementById('commander-pip');
-        if(pip) pip.style.display = isPIP ? 'block' : 'none';
+        if(!isPhotoMode && pip) pip.style.display = isPIP ? 'block' : 'none';
         addLog(isPIP ? "🖼️ 顯示子母畫面" : "🖼️ 隱藏子母畫面");
     }
 

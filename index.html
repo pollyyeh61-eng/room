@@ -12,20 +12,20 @@
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
 
-        .side-tabs { width: 52px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 60px 0; justify-content: space-between; align-items: center; }
+        .side-tabs { width: 48px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
         .left-tabs { border-left: 1px solid #151515; order: 2; } 
         .right-tabs { border-right: 1px solid #151515; order: 1; }
 
-        /* 黃金比例按鍵與字體優化 */
+        /* 恢復原始字體設定 */
         .tab-btn { 
-            width: 38px; flex-grow: 1; max-height: 90px; margin: 2px 0;
+            width: 36px; flex-grow: 1; max-height: 100px; margin: 2px 0;
             border: 1px solid #1a1a1a; background: #080808;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
             white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
         }
-        .left-tabs .tab-btn { font-size: 13px; color: var(--soft-gold); letter-spacing: 1px; }
-        .right-tabs .tab-btn { font-size: 18px; color: var(--soft-gold); letter-spacing: 2px; }
+        .left-tabs .tab-btn { font-size: 12px; color: var(--soft-gold); letter-spacing: 1px; }
+        .right-tabs .tab-btn { font-size: 13.5px; color: var(--soft-gold); letter-spacing: 2px; }
 
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; box-shadow: 0 0 15px var(--gold-glow); }
         
@@ -37,21 +37,20 @@
         .video-container { width: 98%; height: 95%; margin: auto; border: 1px solid #151515; position: relative; background: #000; overflow: hidden; }
         #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
         
-        /* 子母畫面樣式 */
         #commander-pip { 
             position: absolute; top: 15px; right: 15px; width: 180px; 
             border: 1px solid var(--soft-gold); transform: scaleX(-1); 
             z-index: 100; box-shadow: 0 0 20px rgba(0,0,0,0.8); background: #000;
         }
-        /* 照片頭像樣式 */
+
+        /* 您的照片頭像圖層 */
         #commander-photo { 
             position: absolute; top: 15px; right: 15px; width: 180px; 
             border: 1px solid var(--soft-gold); 
-            z-index: 101; display: none; /* 預設隱藏 */
+            z-index: 101; display: none;
             box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
         
-        /* 監控池與日誌 */
         #matrix-container { flex-grow: 1; display: grid; gap: 5px; padding: 10px; overflow-y: auto; align-content: start; }
         .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; transition: 0.3s; position: relative; }
         .unit-dot.online { color: var(--online-green); border-color: #004422; text-shadow: 0 0 5px var(--online-green); }
@@ -85,7 +84,7 @@
     <div class="video-container" id="video-wrapper">
         <video id="main-display" autoplay playsinline></video>
         <video id="commander-pip" autoplay playsinline muted></video>
-        <img id="commander-photo" src="3.png" alt="校長頭像">
+        <img id="commander-photo" src="3.png">
     </div>
 </div>
 
@@ -95,7 +94,7 @@
         <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
         <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
         <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
-        <button id="photo-pip-btn" class="tab-btn" onclick="togglePhotoPIP()" style="color:var(--soft-gold); border-color:var(--soft-gold);">校長頭像</button>
+        <button id="photo-pip-btn" class="tab-btn" onclick="togglePhotoPIP()">我的頭像</button>
         <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
         <button class="tab-btn" onclick="window.open('line://')" style="color:#00c300aa;">LINE</button>
         <button class="tab-btn" onclick="window.open('https://chat.google.com/')" style="color:#4285f4aa;">CHAT</button>
@@ -125,7 +124,6 @@
         }
     }
 
-    // 新增：切換照片頭像模式
     function togglePhotoPIP() {
         const photoImg = document.getElementById('commander-photo');
         const pipVideo = document.getElementById('commander-pip');

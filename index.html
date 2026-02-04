@@ -2,69 +2,45 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>V-Commander | 葉校長戰情直播系統</title>
+    <title>V-Commander | 葉校長戰情系統</title>
     <style>
-        :root { 
-            --left-width: 180px; --right-width: 280px; 
-            --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); 
-            --bg-dark: #0b0b0b; --online-green: #00ff88; --border-color: #222;
-        }
-        body { margin: 0; background: #000; color: #d0d0d0; font-family: "Microsoft JhengHei", sans-serif; display: flex; height: 100vh; overflow: hidden; }
-     
-        .side-zone { background: var(--bg-dark); border: 1px solid var(--border-color); display: flex; flex-shrink: 0; }
-        .left-zone { width: var(--left-width); }
-        .right-zone { width: var(--right-width); }
-
-        .side-tabs { width: 50px; background: #080808; display: flex; flex-direction: column; padding: 20px 0 100px 0; justify-content: space-between; align-items: center; }
-        .left-tabs { border-left: 1px solid #1a1a1a; order: 2; } 
-        .right-tabs { border-right: 1px solid #1a1a1a; order: 1; }
-
-        .side-content { order: 1; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
-        .right-zone .side-content { order: 2; }
-
-        /* 按鍵鎖定 12px */
+        :root { --left-w: 180px; --right-w: 280px; --gold: #e5c07b; --bg: #000; }
+        body { margin: 0; background: var(--bg); color: #d0d0d0; font-family: "Microsoft JhengHei", sans-serif; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* 側邊欄與按鈕 (12px) */
+        .side-zone { background: #0b0b0b; border: 1px solid #222; display: flex; flex-shrink: 0; }
+        .side-tabs { width: 50px; background: #080808; display: flex; flex-direction: column; padding: 20px 0; justify-content: space-around; align-items: center; border-right: 1px solid #1a1a1a; }
         .tab-btn { 
-            width: 38px; flex-grow: 1; max-height: 90px; margin: 2px 0;
-            border: 1px solid #222; background: #050505;
+            width: 38px; height: 80px; border: 1px solid #222; background: #050505;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
-            white-space: nowrap; opacity: 0.8; transition: 0.3s;
-            font-size: 12px; color: var(--soft-gold); letter-spacing: 2px;
+            font-size: 12px; color: var(--gold); letter-spacing: 2px; transition: 0.3s;
         }
-        .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; background: #111; }
-        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
-        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; }
+        .tab-btn:hover { border-color: var(--gold); background: #111; }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; box-shadow: 0 0 8px #ff4d4d55; }
 
-        #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; padding: 10px; }
-        .video-container { width: 100%; height: 100%; border: 1px solid #1a1a1a; position: relative; background: #050505; }
-        #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
+        /* 中央主畫面 */
+        #center-stage { flex-grow: 1; padding: 10px; position: relative; }
+        .video-box { width: 100%; height: 100%; border: 1px solid #1a1a1a; background: #050505; }
+        #main-display { width: 100%; height: 100%; object-fit: contain; }
         
-        #commander-pip, #commander-photo { 
-            position: absolute; top: 20px; right: 20px; width: 120px; 
-            border: 1px solid var(--soft-gold); z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.9); background: #000;
-        }
-        #commander-photo { z-index: 101; display: none; object-fit: cover; height: 160px; }
+        /* 右側內容 */
+        .side-content { width: 100%; display: flex; flex-direction: column; }
+        .side-title { padding: 10px; background: #0e0e0e; border-bottom: 1px solid #1a1a1a; color: #555; font-size: 11px; text-align: center; letter-spacing: 3px; }
+        .comm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 10px; border-bottom: 1px solid #1a1a1a; }
+        .comm-link { background: #111; border: 1px solid #333; color: var(--gold); text-decoration: none; font-size: 11px; padding: 8px 0; text-align: center; }
         
-        #matrix-container { flex-grow: 1; display: grid; gap: 4px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { border: 1px solid #1a1a1a; background: #0c0c0c; color: #444; text-align: center; font-size: 10px; padding: 8px 0; }
-        .unit-dot.online { color: var(--online-green); border-color: #004422; text-shadow: 0 0 8px var(--online-green); }
+        #matrix { flex-grow: 1; display: grid; gap: 4px; padding: 10px; overflow-y: auto; align-content: start; }
+        .dot { border: 1px solid #1a1a1a; background: #0c0c0c; color: #444; text-align: center; font-size: 10px; padding: 8px 0; }
+        .dot.on { color: #00ff88; border-color: #004422; }
         
-        #status-log { flex-grow: 1; font-size: 13px; color: #777; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
-        .side-title { padding: 12px; background: #0e0e0e; border-bottom: 1px solid #1a1a1a; color: #555; font-size: 11px; letter-spacing: 4px; text-align: center; font-weight: bold; }
-        
-        /* 通訊連結樣式 */
-        .comm-links { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border-bottom: 1px solid #1a1a1a; }
-        .comm-btn { background: #111; border: 1px solid #333; color: #888; text-decoration: none; font-size: 11px; padding: 5px; text-align: center; transition: 0.3s; }
-        .comm-btn:hover { background: #222; color: #fff; border-color: #555; }
+        #log { height: 150px; font-size: 12px; color: #666; overflow-y: auto; padding: 10px; border-top: 1px solid #1a1a1a; }
     </style>
 </head>
-<body onload="startVideo(); setScale(10);">
+<body onload="startCam(); setScale(10);">
 
-<div class="side-zone left-zone">
-    <div class="side-content">
-        <div class="side-title">監控規模</div>
-        <div id="matrix-container"></div>
-    </div>
-    <div class="side-tabs left-tabs">
+<div class="side-zone" style="width: var(--left-w);">
+    <div class="side-content"><div class="side-title">監控規模</div><div id="matrix"></div></div>
+    <div class="side-tabs">
         <button class="tab-btn" onclick="setScale(10)">10人</button>
         <button class="tab-btn" onclick="setScale(20)">20人</button>
         <button class="tab-btn" onclick="setScale(30)">30人</button>
@@ -75,143 +51,79 @@
 </div>
 
 <div id="center-stage">
-    <div class="video-container" id="video-wrapper">
-        <video id="main-display" autoplay playsinline></video>
-        <video id="commander-pip" autoplay playsinline muted></video>
-        <img id="commander-photo" src="3.png">
-    </div>
+    <div class="video-box"><video id="main-display" autoplay playsinline></video></div>
 </div>
 
-<div class="side-zone right-zone">
-    <div class="side-tabs right-tabs">
-        <button id="live-btn" class="tab-btn" onclick="toggleLiveMode()" style="color:#4285f4;">直播課程</button>
-        <button id="rec-btn" class="tab-btn" onclick="handleRecording()">錄影存檔</button>
-        <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
-        <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
-        <button id="photo-pip-btn" class="tab-btn" onclick="togglePhotoPIP()">我的頭像</button>
-        <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
+<div class="side-zone" style="width: var(--right-w);">
+    <div class="side-tabs" style="border-right:0; border-left:1px solid #1a1a1a;">
+        <button id="rec-btn" class="tab-btn" onclick="toggleRec()">錄影存檔</button>
+        <button class="tab-btn" onclick="alert('廣播已就緒')">廣播指令</button>
+        <button class="tab-btn" onclick="location.reload()">重新整理</button>
     </div>
     <div class="side-content">
-        <div class="side-title">通訊快速鏈接</div>
-        <div class="comm-links">
-            <a href="https://line.me" target="_blank" class="comm-btn">LINE</a>
-            <a href="https://chat.google.com" target="_blank" class="comm-btn">Google Chat</a>
+        <div class="side-title">通訊鏈接</div>
+        <div class="comm-grid">
+            <a href="https://line.me" target="_blank" class="comm-link">LINE</a>
+            <a href="https://chat.google.com" target="_blank" class="comm-link">G-CHAT</a>
         </div>
-        <div class="side-title">戰情日誌</div>
-        <div id="status-log"></div>
+        <div class="side-title">系統日誌</div>
+        <div id="log"></div>
     </div>
 </div>
 
 <script>
-    let isPIP = true;
-    let isPhotoMode = false;
-    let cameraStream = null;
-    let isLive = false;
-    let mediaRecorder;
-    let recordedChunks = [];
-    const longTermUrl = "https://meet.ffmuc.net/PollyYeh_Strategy_Room_2026#config.startWithAudioMuted=true&config.prejoinPageEnabled=false";
+    let recorder, chunks = [];
 
-    async function startVideo() {
-        try {
-            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('commander-pip').srcObject = cameraStream;
-            document.getElementById('main-display').srcObject = cameraStream;
-            addLog("🎥 系統相機已啟動"); 
-        } catch (e) { addLog("⚠️ 相機授權失敗"); }
+    async function startCam() {
+        const s = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+        document.getElementById('main-display').srcObject = s;
+        addLog("🎥 戰情室相機啟動");
     }
 
-    async function handleRecording() {
+    async function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        if (!recorder || recorder.state === "inactive") {
             try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                recordedChunks = [];
-                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, { type: "video/webm" });
-                    const url = URL.createObjectURL(blob);
+                // 直接抓取整個畫面進行錄影
+                const s = await navigator.mediaDevices.getDisplayMedia({video:true, audio:true});
+                recorder = new MediaRecorder(s);
+                chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, {type:"video/webm"});
                     const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `錄影_${new Date().getTime()}.webm`;
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `葉校長戰情錄影_${new Date().toLocaleDateString()}.webm`;
                     a.click();
+                    s.getTracks().forEach(t => t.stop());
                 };
-                mediaRecorder.start();
+                recorder.start();
                 btn.classList.add('active-red');
-                addLog("🔴 啟動錄影");
-            } catch (err) { addLog("⚠️ 取消錄影"); }
+                addLog("🔴 正在錄製戰情室畫面...");
+            } catch(e) { addLog("⚠️ 錄影取消"); }
         } else {
-            mediaRecorder.stop();
+            recorder.stop();
             btn.classList.remove('active-red');
-            addLog("✅ 錄影結束");
+            addLog("✅ 錄影已完成並下載");
         }
     }
 
-    function togglePhotoPIP() {
-        const photoImg = document.getElementById('commander-photo');
-        const pipVideo = document.getElementById('commander-pip');
-        isPhotoMode = !isPhotoMode;
-        photoImg.style.display = isPhotoMode ? 'block' : 'none';
-        pipVideo.style.display = (!isPhotoMode && isPIP) ? 'block' : 'none';
-        addLog(isPhotoMode ? "👤 顯示照片" : "🎥 顯示視訊");
-    }
-
-    function toggleLiveMode() {
-        const btn = document.getElementById('live-btn');
-        const wrapper = document.getElementById('video-wrapper');
-        isLive = !isLive;
-        if (isLive) {
-            btn.classList.add('active-blue');
-            addLog("📡 進入直播室");
-            wrapper.innerHTML = `<iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe>
-                <video id="commander-pip" style="width:120px;" autoplay playsinline muted></video>
-                <img id="commander-photo" src="3.png" style="position: absolute; top: 20px; right: 20px; width: 120px; height:160px; border: 1px solid var(--soft-gold); z-index: 101; display: ${isPhotoMode ? 'block' : 'none'}; object-fit:cover;">`;
-            setTimeout(() => { if (cameraStream) document.getElementById('commander-pip').srcObject = cameraStream; }, 1000);
-        } else { location.reload(); }
-    }
-
-    function setScale(num) {
-        const container = document.getElementById('matrix-container');
-        container.innerHTML = '';
-        container.style.gridTemplateColumns = `repeat(${num <= 20 ? 1 : 4}, 1fr)`;
-        for (let i = 1; i <= num; i++) {
-            const dot = document.createElement('div');
-            dot.className = 'unit-dot';
-            if (Math.random() > 0.3) dot.classList.add('online');
-            dot.innerText = (num <= 20) ? `USER-${i}` : `${i}`;
-            container.appendChild(dot);
+    function setScale(n) {
+        const m = document.getElementById('matrix');
+        m.innerHTML = '';
+        m.style.gridTemplateColumns = n<=20 ? "1fr" : "repeat(4, 1fr)";
+        for(let i=1; i<=n; i++) {
+            const d = document.createElement('div');
+            d.className = 'dot' + (Math.random()>0.3?' on':'');
+            d.innerText = n<=20 ? `STUDENT-${i}` : i;
+            m.appendChild(d);
         }
-        addLog(`📊 規模：${num} 人`);
+        addLog(`📊 規模切換: ${n}人`);
     }
 
-    function togglePIP() {
-        isPIP = !isPIP;
-        const pip = document.getElementById('commander-pip');
-        if(!isPhotoMode && pip) pip.style.display = isPIP ? 'block' : 'none';
-        addLog(isPIP ? "🖼️ 顯示小視窗" : "🖼️ 隱藏小視窗");
-    }
-
-    function toggleBC() {
-        const btn = document.getElementById('bc-btn');
-        btn.classList.toggle('active-red');
-        addLog(btn.classList.contains('active-red') ? "🎙️ 廣播中" : "🔇 靜音");
-    }
-
-    async function toggleShare() {
-        try {
-            const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 分享螢幕");
-        } catch (e) { addLog("⚠️ 取消分享"); }
-    }
-
-    function addLog(txt) {
-        const log = document.getElementById('status-log');
-        const entry = document.createElement('div');
-        const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-        entry.innerHTML = `<span style="color:#444;margin-right:10px;">${timeStr}</span> ${txt}`;
-        log.prepend(entry);
+    function addLog(t) {
+        const l = document.getElementById('log');
+        l.innerHTML = `<div>${new Date().toLocaleTimeString()} - ${t}</div>` + l.innerHTML;
     }
 </script>
 </body>

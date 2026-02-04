@@ -5,18 +5,12 @@
     <title>V-Commander | 葉校長戰情直播系統</title>
     <style>
         :root { 
-            --left-width: 180px; 
-            --right-width: 280px; 
-            --soft-gold: #e5c07b; 
-            --gold-glow: rgba(229, 192, 123, 0.4); 
-            --bg-dark: #0b0b0b; 
-            --online-green: #00ff88; 
-            --border-color: #222;
+            --left-width: 180px; --right-width: 280px; 
+            --soft-gold: #e5c07b; --gold-glow: rgba(229, 192, 123, 0.4); 
+            --bg-dark: #0b0b0b; --online-green: #00ff88; --border-color: #222;
         }
-        
         body { margin: 0; background: #000; color: #d0d0d0; font-family: "Microsoft JhengHei", sans-serif; display: flex; height: 100vh; overflow: hidden; }
      
-        /* 側邊欄結構 */
         .side-zone { background: var(--bg-dark); border: 1px solid var(--border-color); display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
@@ -28,44 +22,39 @@
         .side-content { order: 1; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
         .right-zone .side-content { order: 2; }
 
-        /* 按鍵縮至 12px，維持黃金比例美感 */
+        /* 按鍵鎖定 12px */
         .tab-btn { 
-            width: 38px; flex-grow: 1; max-height: 110px; margin: 3px 0;
+            width: 38px; flex-grow: 1; max-height: 90px; margin: 2px 0;
             border: 1px solid #222; background: #050505;
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
             white-space: nowrap; opacity: 0.8; transition: 0.3s;
             font-size: 12px; color: var(--soft-gold); letter-spacing: 2px;
-            font-weight: 300;
         }
-
         .tab-btn:hover { opacity: 1; border-color: var(--soft-gold); color: #fff; background: #111; }
-        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; box-shadow: inset 0 0 10px #ff4d4d33; }
-        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; box-shadow: inset 0 0 10px #4285f433; }
+        .active-red { border-color: #ff4d4d !important; color: #ff4d4d !important; opacity: 1; }
+        .active-blue { border-color: #4285f4 !important; color: #4285f4 !important; opacity: 1; }
 
-        /* 中央舞台 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; padding: 10px; }
-        .video-container { width: 100%; height: 100%; border: 1px solid #1a1a1a; position: relative; background: #050505; border-radius: 4px; overflow: hidden; }
+        .video-container { width: 100%; height: 100%; border: 1px solid #1a1a1a; position: relative; background: #050505; }
         #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
         
-        /* 頭像與子母畫面 120px */
         #commander-pip, #commander-photo { 
             position: absolute; top: 20px; right: 20px; width: 120px; 
-            border: 1px solid var(--soft-gold); border-radius: 2px;
-            z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.9); background: #000;
+            border: 1px solid var(--soft-gold); z-index: 100; box-shadow: 0 0 30px rgba(0,0,0,0.9); background: #000;
         }
-        #commander-pip { transform: scaleX(-1); }
         #commander-photo { z-index: 101; display: none; object-fit: cover; height: 160px; }
         
-        /* 學員池與日誌樣式恢復 */
         #matrix-container { flex-grow: 1; display: grid; gap: 4px; padding: 10px; overflow-y: auto; align-content: start; }
-        .unit-dot { border: 1px solid #1a1a1a; background: #0c0c0c; color: #444; text-align: center; font-size: 10px; padding: 8px 0; border-radius: 2px; }
-        .unit-dot.online { color: var(--online-green); border-color: #004422; text-shadow: 0 0 8px var(--online-green); background: #0a1510; }
+        .unit-dot { border: 1px solid #1a1a1a; background: #0c0c0c; color: #444; text-align: center; font-size: 10px; padding: 8px 0; }
+        .unit-dot.online { color: var(--online-green); border-color: #004422; text-shadow: 0 0 8px var(--online-green); }
         
-        #status-log { flex-grow: 1; font-size: 13px; color: #777; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.6; }
-        .log-entry { margin-bottom: 6px; border-bottom: 1px dotted #222; padding-bottom: 4px; }
-        .log-time { color: #444; margin-right: 10px; font-family: 'Courier New', monospace; }
-        
+        #status-log { flex-grow: 1; font-size: 13px; color: #777; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; }
         .side-title { padding: 12px; background: #0e0e0e; border-bottom: 1px solid #1a1a1a; color: #555; font-size: 11px; letter-spacing: 4px; text-align: center; font-weight: bold; }
+        
+        /* 通訊連結樣式 */
+        .comm-links { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border-bottom: 1px solid #1a1a1a; }
+        .comm-btn { background: #111; border: 1px solid #333; color: #888; text-decoration: none; font-size: 11px; padding: 5px; text-align: center; transition: 0.3s; }
+        .comm-btn:hover { background: #222; color: #fff; border-color: #555; }
     </style>
 </head>
 <body onload="startVideo(); setScale(10);">
@@ -77,7 +66,9 @@
     </div>
     <div class="side-tabs left-tabs">
         <button class="tab-btn" onclick="setScale(10)">10人</button>
+        <button class="tab-btn" onclick="setScale(20)">20人</button>
         <button class="tab-btn" onclick="setScale(30)">30人</button>
+        <button class="tab-btn" onclick="setScale(40)">40人</button>
         <button class="tab-btn" onclick="setScale(50)">50人</button>
         <button class="tab-btn" onclick="setScale(100)">100人</button>
     </div>
@@ -93,7 +84,7 @@
 
 <div class="side-zone right-zone">
     <div class="side-tabs right-tabs">
-        <button id="live-btn" class="tab-btn" onclick="toggleLiveMode()" style="color:#4285f4; font-weight:bold;">直播課程</button>
+        <button id="live-btn" class="tab-btn" onclick="toggleLiveMode()" style="color:#4285f4;">直播課程</button>
         <button id="rec-btn" class="tab-btn" onclick="handleRecording()">錄影存檔</button>
         <button id="bc-btn" class="tab-btn" onclick="toggleBC()">廣播指令</button>
         <button id="pip-btn" class="tab-btn" onclick="togglePIP()">子母畫面</button>
@@ -101,6 +92,11 @@
         <button id="share-btn" class="tab-btn" onclick="toggleShare()">分享視窗</button>
     </div>
     <div class="side-content">
+        <div class="side-title">通訊快速鏈接</div>
+        <div class="comm-links">
+            <a href="https://line.me" target="_blank" class="comm-btn">LINE</a>
+            <a href="https://chat.google.com" target="_blank" class="comm-btn">Google Chat</a>
+        </div>
         <div class="side-title">戰情日誌</div>
         <div id="status-log"></div>
     </div>
@@ -113,7 +109,6 @@
     let isLive = false;
     let mediaRecorder;
     let recordedChunks = [];
-
     const longTermUrl = "https://meet.ffmuc.net/PollyYeh_Strategy_Room_2026#config.startWithAudioMuted=true&config.prejoinPageEnabled=false";
 
     async function startVideo() {
@@ -121,10 +116,8 @@
             cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('commander-pip').srcObject = cameraStream;
             document.getElementById('main-display').srcObject = cameraStream;
-            addLog("🎥 系統相機已就緒"); 
-        } catch (e) { 
-            addLog("⚠️ 相機授權失敗"); 
-        }
+            addLog("🎥 系統相機已啟動"); 
+        } catch (e) { addLog("⚠️ 相機授權失敗"); }
     }
 
     async function handleRecording() {
@@ -140,14 +133,13 @@
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement("a");
                     a.href = url;
-                    a.download = `葉校長課程錄影_${new Date().getTime()}.webm`;
+                    a.download = `錄影_${new Date().getTime()}.webm`;
                     a.click();
-                    addLog("💾 錄影檔案導出成功");
                 };
                 mediaRecorder.start();
                 btn.classList.add('active-red');
-                addLog("🔴 啟動全螢幕錄影");
-            } catch (err) { addLog("⚠️ 錄影權限取消"); }
+                addLog("🔴 啟動錄影");
+            } catch (err) { addLog("⚠️ 取消錄影"); }
         } else {
             mediaRecorder.stop();
             btn.classList.remove('active-red');
@@ -158,19 +150,10 @@
     function togglePhotoPIP() {
         const photoImg = document.getElementById('commander-photo');
         const pipVideo = document.getElementById('commander-pip');
-        const btn = document.getElementById('photo-pip-btn');
         isPhotoMode = !isPhotoMode;
-        if (isPhotoMode) {
-            photoImg.style.display = 'block';
-            pipVideo.style.display = 'none';
-            btn.classList.add('active-blue');
-            addLog("👤 已顯示預設頭像");
-        } else {
-            photoImg.style.display = 'none';
-            pipVideo.style.display = isPIP ? 'block' : 'none';
-            btn.classList.remove('active-blue');
-            addLog("🎥 已恢復即時視訊");
-        }
+        photoImg.style.display = isPhotoMode ? 'block' : 'none';
+        pipVideo.style.display = (!isPhotoMode && isPIP) ? 'block' : 'none';
+        addLog(isPhotoMode ? "👤 顯示照片" : "🎥 顯示視訊");
     }
 
     function toggleLiveMode() {
@@ -179,19 +162,12 @@
         isLive = !isLive;
         if (isLive) {
             btn.classList.add('active-blue');
-            addLog("📡 進入戰情直播室模式");
-            wrapper.innerHTML = `
-                <iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe>
+            addLog("📡 進入直播室");
+            wrapper.innerHTML = `<iframe id="live-frame" allow="camera; microphone; fullscreen; display-capture; autoplay" src="${longTermUrl}"></iframe>
                 <video id="commander-pip" style="width:120px;" autoplay playsinline muted></video>
-                <img id="commander-photo" src="3.png" style="position: absolute; top: 20px; right: 20px; width: 120px; height:160px; border: 1px solid var(--soft-gold); z-index: 101; display: ${isPhotoMode ? 'block' : 'none'}; object-fit:cover;">
-            `;
-            setTimeout(() => {
-                const pip = document.getElementById('commander-pip');
-                if (cameraStream) pip.srcObject = cameraStream;
-            }, 1000);
-        } else {
-            location.reload(); 
-        }
+                <img id="commander-photo" src="3.png" style="position: absolute; top: 20px; right: 20px; width: 120px; height:160px; border: 1px solid var(--soft-gold); z-index: 101; display: ${isPhotoMode ? 'block' : 'none'}; object-fit:cover;">`;
+            setTimeout(() => { if (cameraStream) document.getElementById('commander-pip').srcObject = cameraStream; }, 1000);
+        } else { location.reload(); }
     }
 
     function setScale(num) {
@@ -205,37 +181,36 @@
             dot.innerText = (num <= 20) ? `USER-${i}` : `${i}`;
             container.appendChild(dot);
         }
-        addLog(`📊 規模切換：${num} 人模式`);
+        addLog(`📊 規模：${num} 人`);
     }
 
     function togglePIP() {
         isPIP = !isPIP;
         const pip = document.getElementById('commander-pip');
         if(!isPhotoMode && pip) pip.style.display = isPIP ? 'block' : 'none';
-        addLog(isPIP ? "🖼️ 開啟子母畫面" : "🖼️ 隱藏子母畫面");
+        addLog(isPIP ? "🖼️ 顯示小視窗" : "🖼️ 隱藏小視窗");
     }
 
     function toggleBC() {
         const btn = document.getElementById('bc-btn');
         btn.classList.toggle('active-red');
-        addLog(btn.classList.contains('active-red') ? "🎙️ 指令廣播中..." : "🔇 廣播靜音");
+        addLog(btn.classList.contains('active-red') ? "🎙️ 廣播中" : "🔇 靜音");
     }
 
     async function toggleShare() {
         try {
             const shareStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
             document.getElementById('main-display').srcObject = shareStream;
-            addLog("🖥️ 視窗分享已啟動");
-        } catch (e) { addLog("⚠️ 分享已取消"); }
+            addLog("🖥️ 分享螢幕");
+        } catch (e) { addLog("⚠️ 取消分享"); }
     }
 
     function addLog(txt) {
         const log = document.getElementById('status-log');
         const entry = document.createElement('div');
-        entry.className = 'log-entry';
         const now = new Date();
-        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-        entry.innerHTML = `<span class="log-time">${timeStr}</span> ${txt}`;
+        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        entry.innerHTML = `<span style="color:#444;margin-right:10px;">${timeStr}</span> ${txt}`;
         log.prepend(entry);
     }
 </script>

@@ -11,12 +11,10 @@
             --gold-glow: rgba(229, 192, 123, 0.4); 
             --bg-dark: #000; 
             --online-green: #00ff88; 
-            --font-main: 18px; /* 葉校長要求的黃金比例下限 */
-            --font-large: 20px; /* 葉校長要求的黃金比例上限 */
+            --font-lock: 12px; /* 葉校長指示：鎖定 12px */
         }
         body { margin: 0; background: var(--bg-dark); color: #d0d0d0; font-family: sans-serif; display: flex; height: 100vh; overflow: hidden; }
      
-        /* 側邊欄位 */
         .side-zone { background: #050505; border: 1px solid #1a1a1a; display: flex; flex-shrink: 0; }
         .left-zone { width: var(--left-width); }
         .right-zone { width: var(--right-width); }
@@ -31,7 +29,7 @@
             cursor: pointer; writing-mode: vertical-lr; text-align: center; 
             white-space: nowrap; opacity: 0.7; transition: 0.5s; font-weight: 300;
             position: relative; overflow: hidden;
-            font-size: var(--font-main); /* 應用黃金比例 */
+            font-size: var(--font-lock); /* 鎖定在 12px */
             color: var(--soft-gold);
             letter-spacing: 2px;
         }
@@ -47,7 +45,6 @@
             100% { box-shadow: 0 0 5px #ff4d4d; }
         }
 
-        /* 中央舞台 */
         #center-stage { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: #000; border-left: 1px solid #111; border-right: 1px solid #111; }
         .video-container { width: 98%; height: 95%; margin: auto; border: 1px solid #151515; position: relative; background: #000; overflow: hidden; }
         #main-display, #live-frame { width: 100%; height: 100%; border: 0; object-fit: contain; }
@@ -68,10 +65,10 @@
         .unit-dot { border: 1px solid #151515; background: #070707; color: #333; text-align: center; font-size: 11px; padding: 5px 0; transition: 0.3s; position: relative; }
         .unit-dot.online { color: var(--online-green); border-color: #004422; text-shadow: 0 0 5px var(--online-green); }
 
-        #status-log { flex-grow: 1; font-size: 14px; color: #777; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
+        #status-log { flex-grow: 1; font-size: 12px; color: #777; overflow-y: auto; display: flex; flex-direction: column-reverse; padding: 15px; line-height: 1.8; }
         .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
         .log-time { color: #444; margin-right: 8px; font-family: monospace; }
-        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #666; font-size: 14px; letter-spacing: 3px; font-weight: bold; }
+        .side-title { padding: 15px; border-bottom: 1px solid #151515; color: #666; font-size: 12px; letter-spacing: 3px; font-weight: bold; }
     </style>
 </head>
 <body onload="startVideo(); setScale(10);">
@@ -157,8 +154,6 @@
 
     async function toggleRec() {
         const btn = document.getElementById('rec-btn');
-        
-        // 如果正在錄影中，則停止
         if (mediaRecorder && mediaRecorder.state === "recording") {
             mediaRecorder.stop();
             btn.classList.remove('active-red');
@@ -167,14 +162,13 @@
         }
 
         try {
-            // 提醒校長選擇「整個螢幕」以達到最佳錄製效果
-            addLog("🔴 請選擇要錄製的螢幕範圍...");
+            addLog("🔴 啟動錄影：請在彈窗中選擇「整個螢幕」");
             const stream = await navigator.mediaDevices.getDisplayMedia({ 
                 video: { cursor: "always" }, 
                 audio: true 
             });
 
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
             recordedChunks = [];
 
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -184,10 +178,10 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = `葉校長戰情錄影_${new Date().toLocaleDateString()}.webm`;
+                a.download = `葉校長戰情錄影_${new Date().getTime()}.webm`;
                 a.click();
                 stream.getTracks().forEach(track => track.stop());
-                addLog("✅ 錄影存檔已下載");
+                addLog("✅ 錄影存檔已導出");
             };
 
             mediaRecorder.start();
